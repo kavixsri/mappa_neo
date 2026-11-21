@@ -248,13 +248,16 @@ class MappaGraphService:
                 sm["est_debris_vol_m3"] = round(sm["est_debris_vol_m3"] + debris_m3, 0)
                 sm["changed_fracs"].append(cfrac)
 
-        # Stitch nearby disconnected road components (e.g. OSM bridge/culvert gaps <= 65 m) with virtual connectors
-        comps = list(nx.connected_components(G))
-        if len(comps) > 1:
-            j_lookup = {j["id"]: j for j in junctions}
+        # Stitch nearby disconnected OSM road components (bridges, culverts, trailheads <= 350 m)
+        # using a minimum-spanning-tree connector so the pre-disaster road network is traversable.
+        j_lookup = {j["id"]: j for j in junctions}
+        while True:
+            comps = list(nx.connected_components(G))
+            if len(comps) <= 1:
+                break
+            best_d, best_pair = 350.0, None
             for i in range(len(comps)):
                 for k in range(i + 1, len(comps)):
-                    best_d, best_pair = 65.0, None
                     for a in comps[i]:
                         ja = j_lookup[a]
                         for b in comps[k]:
@@ -262,32 +265,36 @@ class MappaGraphService:
                             d = math.hypot(ja["x"] - jb["x"], ja["y"] - jb["y"])
                             if d < best_d:
                                 best_d, best_pair = d, (a, b)
-                    if best_pair:
-                        u, v = best_pair
-                        ja, jb = j_lookup[u], j_lookup[v]
-                        conn = {
-                            "segment_id": f"{mission_id}:CONN_{u}_{v}",
-                            "mission_id": mission_id,
-                            "u": u, "v": v,
-                            "stretch_key": f"{mission_id}:CONN",
-                            "road_name": "Bridge / Corridor Link",
-                            "status": "CLEAR",
-                            "orig_status": "CLEAR",
-                            "length_m": round(best_d, 1),
-                            "changed_frac": 0.0,
-                            "height_anom_m": -1.0,
-                            "est_debris_vol_m3": 0.0,
-                            "coords_ll": [[ja["lat"], ja["lon"]], [jb["lat"], jb["lon"]]],
-                        }
-                        G.add_edge(u, v, **conn)
-                        edges_payload.append(conn)
+            if not best_pair:
+                break
+            u, v = best_pair
+            ja, jb = j_lookup[u], j_lookup[v]
+            conn = {
+                "segment_id": f"{mission_id}:CONN_{u}_{v}",
+                "mission_id": mission_id,
+                "u": u, "v": v,
+                "stretch_key": f"{mission_id}:CONN",
+                "road_name": "Bridge / Corridor Link",
+                "status": "CLEAR",
+                "orig_status": "CLEAR",
+                "length_m": round(best_d, 1),
+                "changed_frac": 0.0,
+                "height_anom_m": -1.0,
+                "est_debris_vol_m3": 0.0,
+                "coords_ll": [[ja["lat"], ja["lon"]], [jb["lat"], jb["lon"]]],
+            }
+            G.add_edge(u, v, **conn)
+            edges_payload.append(conn)
 
         for j in junctions:
             if j["id"] in G.nodes:
                 G.nodes[j["id"]].update(lat=j["lat"], lon=j["lon"], x=j["x"], y=j["y"])
 
-        # Attach facilities (villages, hospitals, staging base) to nearest junction on the main component
-        j_in_graph = [j for j in junctions if j["id"] in G.nodes]
+        # Attach facilities (villages, hospitals, staging base) to nearest junction on the MAIN road network
+        main_comp = max(nx.connected_components(G), key=len) if len(G) else set()
+        j_in_graph = [j for j in junctions if j["id"] in main_comp]
+        if not j_in_graph:
+            j_in_graph = [j for j in junctions if j["id"] in G.nodes]
         if not facilities:
             facilities = self._derive_default_facilities(mission_id, j_in_graph)
 
