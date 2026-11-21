@@ -1,0 +1,56 @@
+[
+  {
+    "id": "nepal_2026:staging_south",
+    "name": "Dhunche\u2013Syabrubesi Staging Base (South Highway)",
+    "category": "staging_base",
+    "population_est": 0,
+    "lat": 28.1545,
+    "lon": 85.334,
+    "is_staging": true
+  },
+  {
+    "id": "nepal_2026:syabrubesi_bazar",
+    "name": "Syabrubesi Bazaar & Bus Park",
+    "category": "village",
+    "population_est": 1250,
+    "lat": 28.1618,
+    "lon": 85.3346,
+    "is_staging": false
+  },
+  {
+    "id": "nepal_2026:old_syabru",
+    "name": "Old Syabrubesi / Bhote Koshi Bridge",
+    "category": "bridge",
+    "population_est": 640,
+    "lat": 28.1636,
+    "lon": 85.3375,
+    "is_staging": false
+  },
+  {
+    "id": "nepal_2026:langtang_trailhead",
+    "name": "Langtang Valley Trailhead & Health Post",
+    "category": "clinic",
+    "population_est": 480,
+    "lat": 28.1652,
+    "lon": 85.3412,
+    "is_staging": false
+  },
+  {
+    "id": "nepal_2026:timure_highway_north",
+    "name": "Pasang Lhamu Highway North (Toward Timure)",
+    "category": "village",
+    "population_est": 920,
+    "lat": 28.1702,
+    "lon": 85.3398,
+    "is_staging": false
+  },
+  {
+    "id": "nepal_2026:khwang_west",
+    "name": "West Slope Settlement (Khwang / Chilime Rd)",
+    "category": "village",
+    "population_est": 510,
+    "lat": 28.1645,
+    "lon": 85.3278,
+    "is_staging": false
+  }
+]

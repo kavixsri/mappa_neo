@@ -1,0 +1,97 @@
+{
+  "event": "2026 Nepal Bhote Koshi / Trishuli Flash Flood & Debris Cascade",
+  "event_date": "2026-08-26",
+  "location": "Syabrubesi (Shyaphru), Rasuwa District, Nepal",
+  "copernicus_activation": "EMSR927",
+  "aoi_wgs84": [
+    85.323,
+    28.151,
+    85.35,
+    28.173
+  ],
+  "aoi_utm45n": [
+    335330.41,
+    3115030.45,
+    338015.17,
+    3117504.47
+  ],
+  "crs": "EPSG:32645",
+  "layers": {
+    "copernicus_ems_roads": {
+      "total": 1075,
+      "in_aoi": 21,
+      "damage_counts": {
+        "Destroyed": 11,
+        "Possibly damaged": 5,
+        "No visible damage": 5
+      }
+    },
+    "copernicus_ems_buildings": {
+      "in_aoi": 401
+    },
+    "osm_roads": {
+      "count": 39
+    },
+    "osm_facilities": {
+      "count": 7
+    },
+    "post_vantor_2026_09_06": {
+      "url": "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/6a9e72a08cb6541dae9eb0af/0/6a9e72a08cb6541dae9eb0b0.tif",
+      "acquired": "2026-09-06T23:43:00Z",
+      "provider": "Vantor / Maxar Open Data via OpenAerialMap",
+      "gsd_m": 0.39,
+      "width": 1790,
+      "height": 1649,
+      "res_m": 1.5,
+      "valid_frac": 1.0,
+      "bright_cloud_est": 0.0
+    },
+    "post_vantor_2026_08_26": {
+      "url": "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/6a90f22377e669c3b6778550/0/6a90f22377e669c3b6778551.tif",
+      "acquired": "2026-08-26T22:00:00Z",
+      "provider": "Vantor / Maxar Open Data via OpenAerialMap (Flood Day)",
+      "gsd_m": 0.37,
+      "width": 1790,
+      "height": 1649,
+      "res_m": 1.5,
+      "valid_frac": 1.0,
+      "bright_cloud_est": 0.0
+    },
+    "pre_vantor_2021_10_16": {
+      "url": "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/6a90bc90d8f7b27f66738feb/0/6a90bc90d8f7b27f66738fec.tif",
+      "acquired": "2021-10-16T03:22:00Z",
+      "provider": "Vantor / Maxar Open Data via OpenAerialMap (Pre-Event)",
+      "gsd_m": 0.59,
+      "width": 1790,
+      "height": 1649,
+      "res_m": 1.5,
+      "valid_frac": 1.0,
+      "bright_cloud_est": 0.0
+    },
+    "pre_vantor_2023_09_17": {
+      "url": "https://oin-hotosm-temp.s3.us-east-1.amazonaws.com/6a908044d8f7b27f667344de/0/6a908044d8f7b27f667344df.tif",
+      "acquired": "2023-09-17T02:09:00Z",
+      "provider": "Vantor / Maxar Open Data via OpenAerialMap (Pre-Event)",
+      "gsd_m": 0.47,
+      "width": 1790,
+      "height": 1649,
+      "res_m": 1.5,
+      "valid_frac": 1.0,
+      "bright_cloud_est": 0.0
+    },
+    "copernicus_dem_30m": {
+      "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E085_00_DEM/Copernicus_DSM_COG_10_N28_00_E085_00_DEM.tif",
+      "acquired": "Copernicus GLO-30",
+      "provider": "Copernicus DEM 30m AWS Open Data",
+      "gsd_m": 30.0,
+      "width": 268,
+      "height": 247,
+      "res_m": 10.0,
+      "valid_frac": 1.0
+    }
+  },
+  "selected_post": "post_vantor_2026_09_06.tif",
+  "selected_post_key": "post_vantor_2026_09_06",
+  "selected_pre": "pre_vantor_2021_10_16.tif",
+  "selected_pre_key": "pre_vantor_2021_10_16"
+}

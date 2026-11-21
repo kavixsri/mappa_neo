@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: mappa-neo
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USERNAME
+        value: neo4j
+      - key: NEO4J_PASSWORD
+        sync: false
+      - key: MAPPA_JWT_SECRET
+        generateValue: true

@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.env
+data/.jwt_secret
+data/mappa_neo.db*
+data/runs/
+# Large regenerable GeoTIFFs (run scripts/fetch_nepal_2026.py + scripts/run_nepal_2026.py to recreate)
+examples/demo_run/input/drone_after_ortho.tif
+examples/demo_run/output/orthophoto_georef.tif
+examples/nepal_2026_run/output/orthophoto_georef.tif
+datasets/nepal_2026_syabrubesi/*.tif
+odm_work/
+*.egg-info/

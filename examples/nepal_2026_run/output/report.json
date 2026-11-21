@@ -1,0 +1,853 @@
+{
+  "tool": "mappa 0.1.0",
+  "simulated_data": false,
+  "provenance": "REAL EVENT: 26 Aug 2026 Nepal Bhote Koshi / Trishuli flash flood (Syabrubesi, Rasuwa). Post: Vantor/Maxar 2026-09-06 via OpenAerialMap; Pre: Vantor/Maxar 2021-10-16 via OpenAerialMap; Roads: OpenStreetMap; Ground-truth reference: Copernicus EMS Activation EMSR927.",
+  "inputs": {
+    "ortho": "post_vantor_2026_09_06.tif",
+    "base": "pre_vantor_2021_10_16.tif",
+    "roads": "osm_roads.geojson",
+    "dsm": null,
+    "dem": null
+  },
+  "analysis_grid_m": 1.5,
+  "area_km2": 6.645,
+  "bounds_wgs84": [
+    [
+      28.150663,
+      85.322657
+    ],
+    [
+      28.173328,
+      85.35034
+    ]
+  ],
+  "georeferencing": {
+    "method": "phase-correlation (fallback)",
+    "gps_only_correction_m": 0.65,
+    "registration_rms_m": null,
+    "n_inliers": 0,
+    "n_matches": 64,
+    "scale": 1.0,
+    "rotation_deg": 0.0,
+    "base_layer_abs_accuracy_95_m_assumed": 5.0,
+    "horizontal_accuracy_95_m": 10.3,
+    "statement": "Positional accuracy +/-10 m (95%), unverified against ground truth. Relative accuracy inside the map is much better (centimetre-to-decimetre class) but was not measured here."
+  },
+  "change": {
+    "diff_threshold": 79.24,
+    "diff_median": 27.81,
+    "diff_mad": 21.43,
+    "k": 2.4,
+    "blur_sigma_px": 0.8,
+    "changed_area_m2": 468540,
+    "n_change_polygons": 186,
+    "height_used": false,
+    "vertical_bias_removed_m": null,
+    "base_native_resolution_m": 1.5,
+    "caveat": "Detection is coarse: limited by the 1 m base imagery; small debris is not resolved."
+  },
+  "roads": {
+    "thresholds": {
+      "seg_len_m": 25.0,
+      "buffer_m": 8.0,
+      "blocked_frac": 0.4,
+      "uncertain_frac": 0.18,
+      "blocked_height_m": 0.5,
+      "blocked_frac_no_dsm": 0.45,
+      "min_valid": 0.5
+    },
+    "segments": 1406,
+    "length_m_by_status": {
+      "BLOCKED": 765.0,
+      "CLEAR": 22575.0,
+      "NO_DATA": 9166.0,
+      "UNCERTAIN": 2099.0
+    },
+    "blocked_stretches": [
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 75.0,
+        "mean_changed_frac": 0.51,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 275,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 2,
+        "status": "BLOCKED",
+        "length_m": 73.5,
+        "mean_changed_frac": 0.91,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 482,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.8,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 288,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 2,
+        "status": "BLOCKED",
+        "length_m": 49.0,
+        "mean_changed_frac": 0.58,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 205,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A013",
+        "road_id": 0,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.45,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 81,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.84,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 151,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.47,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 85,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.47,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 85,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.56,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 101,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.54,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 97,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.46,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 83,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.66,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 119,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "BLOCKED",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.46,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 83,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "path",
+        "road_id": 4,
+        "status": "BLOCKED",
+        "length_m": 24.7,
+        "mean_changed_frac": 0.48,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 85,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "unclassified",
+        "road_id": 16,
+        "status": "BLOCKED",
+        "length_m": 24.7,
+        "mean_changed_frac": 0.56,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 100,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "Langtang Trek Trail",
+        "road_id": 5,
+        "status": "BLOCKED",
+        "length_m": 24.6,
+        "mean_changed_frac": 0.45,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 80,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 26,
+        "status": "BLOCKED",
+        "length_m": 24.6,
+        "mean_changed_frac": 0.6,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 106,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 26,
+        "status": "BLOCKED",
+        "length_m": 24.6,
+        "mean_changed_frac": 0.63,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 112,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 2,
+        "status": "BLOCKED",
+        "length_m": 24.5,
+        "mean_changed_frac": 0.5,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 88,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 2,
+        "status": "BLOCKED",
+        "length_m": 24.5,
+        "mean_changed_frac": 0.46,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 81,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 17,
+        "status": "BLOCKED",
+        "length_m": 24.5,
+        "mean_changed_frac": 0.47,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 83,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 17,
+        "status": "BLOCKED",
+        "length_m": 24.5,
+        "mean_changed_frac": 0.83,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 146,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "track",
+        "road_id": 18,
+        "status": "BLOCKED",
+        "length_m": 24.5,
+        "mean_changed_frac": 0.47,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 83,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "path",
+        "road_id": 32,
+        "status": "BLOCKED",
+        "length_m": 24.0,
+        "mean_changed_frac": 0.46,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 79,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A013",
+        "road_id": 20,
+        "status": "BLOCKED",
+        "length_m": 23.1,
+        "mean_changed_frac": 0.46,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 77,
+        "debris_vol_source": "optical_proxy_1.2m"
+      }
+    ],
+    "uncertain_stretches": [
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 100.0,
+        "mean_changed_frac": 0.26,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 62,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 100.0,
+        "mean_changed_frac": 0.27,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 65,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 100.0,
+        "mean_changed_frac": 0.3,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 72,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 100.0,
+        "mean_changed_frac": 0.3,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 72,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "Pasang Lhamu Highway",
+        "road_id": 1,
+        "status": "UNCERTAIN",
+        "length_m": 98.0,
+        "mean_changed_frac": 0.42,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 99,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 75.0,
+        "mean_changed_frac": 0.32,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 58,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "path",
+        "road_id": 32,
+        "status": "UNCERTAIN",
+        "length_m": 72.0,
+        "mean_changed_frac": 0.27,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 47,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A013",
+        "road_id": 0,
+        "status": "UNCERTAIN",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.25,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 30,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A013",
+        "road_id": 0,
+        "status": "UNCERTAIN",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.3,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 36,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.35,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 42,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.25,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 30,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.23,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 30,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.45,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 54,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.24,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 30,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "track",
+        "road_id": 35,
+        "status": "UNCERTAIN",
+        "length_m": 50.0,
+        "mean_changed_frac": 0.39,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 47,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "Pasang Lhamu Highway",
+        "road_id": 1,
+        "status": "UNCERTAIN",
+        "length_m": 49.0,
+        "mean_changed_frac": 0.35,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 41,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "Pasang Lhamu Highway",
+        "road_id": 1,
+        "status": "UNCERTAIN",
+        "length_m": 49.0,
+        "mean_changed_frac": 0.3,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 35,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "path",
+        "road_id": 9,
+        "status": "UNCERTAIN",
+        "length_m": 49.0,
+        "mean_changed_frac": 0.25,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 29,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 17,
+        "status": "UNCERTAIN",
+        "length_m": 49.0,
+        "mean_changed_frac": 0.35,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 41,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "track",
+        "road_id": 18,
+        "status": "UNCERTAIN",
+        "length_m": 49.0,
+        "mean_changed_frac": 0.27,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 32,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "path",
+        "road_id": 27,
+        "status": "UNCERTAIN",
+        "length_m": 48.8,
+        "mean_changed_frac": 0.35,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 41,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A013",
+        "road_id": 20,
+        "status": "UNCERTAIN",
+        "length_m": 46.2,
+        "mean_changed_frac": 0.34,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 38,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "unclassified",
+        "road_id": 36,
+        "status": "UNCERTAIN",
+        "length_m": 46.0,
+        "mean_changed_frac": 0.26,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 29,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A013",
+        "road_id": 0,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.2,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 15,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A013",
+        "road_id": 0,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.2,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 15,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.26,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 16,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.26,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 16,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.28,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 17,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.43,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 26,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.33,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 20,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.21,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 15,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.28,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 17,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.29,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 17,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.29,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 17,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.23,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 15,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.2,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 15,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.28,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 17,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.23,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 15,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "29A005",
+        "road_id": 3,
+        "status": "UNCERTAIN",
+        "length_m": 25.0,
+        "mean_changed_frac": 0.42,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 25,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "path",
+        "road_id": 4,
+        "status": "UNCERTAIN",
+        "length_m": 24.7,
+        "mean_changed_frac": 0.32,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 19,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "unclassified",
+        "road_id": 16,
+        "status": "UNCERTAIN",
+        "length_m": 24.7,
+        "mean_changed_frac": 0.31,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 18,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "unclassified",
+        "road_id": 16,
+        "status": "UNCERTAIN",
+        "length_m": 24.7,
+        "mean_changed_frac": 0.43,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 25,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "unclassified",
+        "road_id": 16,
+        "status": "UNCERTAIN",
+        "length_m": 24.7,
+        "mean_changed_frac": 0.3,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 18,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "Langtang Trek Trail",
+        "road_id": 5,
+        "status": "UNCERTAIN",
+        "length_m": 24.6,
+        "mean_changed_frac": 0.42,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 25,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 2,
+        "status": "UNCERTAIN",
+        "length_m": 24.5,
+        "mean_changed_frac": 0.28,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 16,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "residential",
+        "road_id": 2,
+        "status": "UNCERTAIN",
+        "length_m": 24.5,
+        "mean_changed_frac": 0.41,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 24,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "track",
+        "road_id": 18,
+        "status": "UNCERTAIN",
+        "length_m": 24.5,
+        "mean_changed_frac": 0.37,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 22,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "path",
+        "road_id": 32,
+        "status": "UNCERTAIN",
+        "length_m": 24.0,
+        "mean_changed_frac": 0.38,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 22,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "path",
+        "road_id": 32,
+        "status": "UNCERTAIN",
+        "length_m": 24.0,
+        "mean_changed_frac": 0.19,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 14,
+        "debris_vol_source": "optical_proxy_1.2m"
+      },
+      {
+        "road": "unclassified",
+        "road_id": 36,
+        "status": "UNCERTAIN",
+        "length_m": 23.0,
+        "mean_changed_frac": 0.4,
+        "mean_height_anom_m": null,
+        "est_debris_vol_m3": 22,
+        "debris_vol_source": "optical_proxy_1.2m"
+      }
+    ]
+  },
+  "hardware": {
+    "cpu_count": 8,
+    "ram_gb": null,
+    "platform": "Windows-11-10.0.26300-SP0",
+    "gpu_used": false
+  },
+  "copernicus_validation": {
+    "available": true,
+    "reference": "Copernicus EMS Activation EMSR927 (photo-interpreted road grading)",
+    "copernicus_segments_in_aoi": 21,
+    "copernicus_damaged_segments": 16,
+    "copernicus_undamaged_segments": 5,
+    "matched_damaged_road_m": 539.1,
+    "matched_blocked_strict_m": 245.1,
+    "total_gt_damaged_in_footprint_m": 1468.2,
+    "total_mappa_flagged_m": 2864.2,
+    "recall_vs_copernicus_damaged": 0.367,
+    "precision_vs_copernicus_damaged": 0.188,
+    "clear_agreement_on_undamaged": 0.709,
+    "note": "Honest optical-only comparison (no post-flood DSM available in open satellite data; cross-sensor seasonal variance & steep Himalayan shadow affect precision)."
+  },
+  "processing_time_s": {
+    "1_load_and_resample": 3.22,
+    "2_register_to_base": 3.48,
+    "3_change_detection": 1.58,
+    "4_road_scoring": 3.63,
+    "5_export_geodata": 7.64,
+    "6_brief_figure": 4.64,
+    "7_pdf": 1.35,
+    "total": 25.8
+  },
+  "processing_time_statement": "6.65 km2 analysed at 1.5 m/px, 8 CPU core(s), None GB RAM, no GPU: 26 s (this pipeline only; photogrammetry stitching time is measured separately)."
+}

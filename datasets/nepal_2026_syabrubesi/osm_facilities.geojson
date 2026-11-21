@@ -1,0 +1,14 @@
+{
+"type": "FeatureCollection",
+"name": "osm_facilities",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "osm_id": 267564991, "name": "स्याप्रु बेसी", "category": "village", "population_est": 450 }, "geometry": { "type": "Point", "coordinates": [ 85.337252, 28.1636668 ] } },
+{ "type": "Feature", "properties": { "osm_id": 4967982080, "name": "Shree komin Pra.V", "category": "school", "population_est": 180 }, "geometry": { "type": "Point", "coordinates": [ 85.3321695, 28.1616696 ] } },
+{ "type": "Feature", "properties": { "osm_id": 14127413536, "name": "स्याफ्रु बेसी", "category": "hamlet", "population_est": 90 }, "geometry": { "type": "Point", "coordinates": [ 85.3427433, 28.164569 ] } },
+{ "type": "Feature", "properties": { "osm_id": 14139984646, "name": "Village (14139984646)", "category": "village", "population_est": 450 }, "geometry": { "type": "Point", "coordinates": [ 85.33647, 28.1624198 ] } },
+{ "type": "Feature", "properties": { "osm_id": 14139984647, "name": "Hamlet (14139984647)", "category": "hamlet", "population_est": 90 }, "geometry": { "type": "Point", "coordinates": [ 85.3318861, 28.1617837 ] } },
+{ "type": "Feature", "properties": { "osm_id": 14139984648, "name": "Hamlet (14139984648)", "category": "hamlet", "population_est": 90 }, "geometry": { "type": "Point", "coordinates": [ 85.3298315, 28.1609821 ] } },
+{ "type": "Feature", "properties": { "osm_id": 14139984670, "name": "Hamlet (14139984670)", "category": "hamlet", "population_est": 90 }, "geometry": { "type": "Point", "coordinates": [ 85.3282303, 28.1651675 ] } }
+]
+}
