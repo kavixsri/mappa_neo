@@ -32,9 +32,13 @@ import networkx as nx
 from shapely.geometry import LineString, Point
 
 try:
-    from neo4j import GraphDatabase
+    import certifi
+    from neo4j import GraphDatabase, TrustCustomCAs
+    os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 except ImportError:
+    certifi = None
     GraphDatabase = None
+    TrustCustomCAs = None
 
 
 def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -75,7 +79,15 @@ class MappaGraphService:
         try:
             if self.driver:
                 self.driver.close()
-            drv = GraphDatabase.driver(uri, auth=(user, password), connection_timeout=8.0)
+            kwargs = {"auth": (user, password), "connection_timeout": 10.0}
+            if certifi is not None and uri.startswith(("neo4j+s://", "bolt+s://")):
+                # Pass certifi CA bundle explicitly for Windows/Python 3.14 strict TLS verification
+                clean_uri = uri.replace("neo4j+s://", "neo4j://", 1).replace("bolt+s://", "bolt://", 1)
+                kwargs["encrypted"] = True
+                kwargs["trusted_certificates"] = TrustCustomCAs(certifi.where())
+                drv = GraphDatabase.driver(clean_uri, **kwargs)
+            else:
+                drv = GraphDatabase.driver(uri, **kwargs)
             drv.verify_connectivity()
             self.driver = drv
             self.neo4j_uri = uri
@@ -437,6 +449,7 @@ class MappaGraphService:
         cypher_query = (
             "MATCH (base:Facility {id: $staging_id})-[:CONNECTED_TO]-(j0:Junction)\n"
             "MATCH (f:Facility {mission_id: $mission_id})-[:CONNECTED_TO]-(jf:Junction)\n"
+            "WHERE f.id <> $staging_id AND j0 <> jf\n"
             "OPTIONAL MATCH p = shortestPath((j0)-[:ROAD_SEGMENT*..180]-(jf))\n"
             "WHERE ALL(r IN relationships(p) WHERE r.status <> 'BLOCKED')\n"
             "RETURN f.id AS id, f.name AS name, f.population_est AS pop, p IS NOT NULL AS reachable"
