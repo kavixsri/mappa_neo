@@ -3,248 +3,302 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MAPPA — Disaster Road Map</title>
+  <title>MAPPA — Rapid Disaster Road Mapping</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/style.css?v=4" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark">M</div>
-      <div>
-        <h1>MAPPA</h1>
-        <small>Which roads are blocked? Who is cut off? What do we do first?</small>
+
+  <!-- ========================
+       1. LOGIN GATE (ROLE-BASED ENTRY)
+       ======================== -->
+  <section id="loginScreen" class="login-screen">
+    <div class="login-hero">
+      <div class="hero-brand">
+        <div class="brand-badge">M</div>
+        <span>MAPPA</span>
+      </div>
+
+      <div class="hero-copy">
+        <div class="hero-eyebrow">Offline Field Mapping · Nepal 2026 Flood Validated</div>
+        <h1>The first map after the landslide.</h1>
+        <p>
+          Turn consumer drone or aerial photos into a georeferenced road-status map on a normal laptop —
+          no cloud, no ground control points, and separate workspaces for rescue teams and road-clearance engineers.
+        </p>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <strong>26 sec</strong>
+          <span>6.65 km² processed offline</span>
+        </div>
+        <div class="hero-stat">
+          <strong>765 m</strong>
+          <span>Blocked road flagged (Syabrubesi)</span>
+        </div>
+        <div class="hero-stat">
+          <strong>2 Roles</strong>
+          <span>NDRF Rescue &amp; PWD Clearance</span>
+        </div>
       </div>
     </div>
-    <div class="top-controls">
-      <select id="missionSelect" aria-label="Choose disaster area"></select>
-      <button id="neo4jPill" class="pill" title="Smart routing status">
-        <span class="dot dot-amber" id="neo4jDot"></span>
-        <span id="neo4jLabel">Smart routing</span>
-      </button>
-      <button id="authBtn" class="btn btn-primary">Sign in</button>
-    </div>
-  </header>
 
-  <nav class="tabs" role="tablist">
-    <button class="tab" data-tab="flyView"><span class="n">1</span> Plan the flight</button>
-    <button class="tab" data-tab="makeView"><span class="n">2</span> Make the map</button>
-    <button class="tab active" data-tab="mapView"><span class="n">3</span> Blocked roads &amp; safe route</button>
-    <button class="tab" data-tab="pwdView"><span class="n">4</span> What to clear first</button>
-  </nav>
+    <div class="login-panel">
+      <div class="login-box">
+        <h2>Choose your workspace</h2>
+        <p class="sub">Sign in to open the interface built for your role.</p>
 
-  <!-- VIEW 1 -->
-  <main id="mapView" class="view active">
-    <div id="missionBanner" class="banner banner-real">Loading…</div>
+        <div class="role-cards">
+          <button type="button" class="role-card" id="quickNdrf">
+            <div>
+              <strong>NDRF / SDRF Rescue &amp; Drone Ops</strong>
+              <span>Live blocked-road map, safe rescue detours, printable brief, and drone flight planner.</span>
+            </div>
+            <span class="role-tag ndrf">RESCUE</span>
+          </button>
 
-    <section class="summary" id="summaryBox" aria-live="polite">Loading the situation…</section>
-
-    <div class="map-layout">
-      <section class="card map-wrap">
-        <div id="map"></div>
-        <div class="legend">
-          <span><i style="background:#ef4444"></i> BLOCKED road</span>
-          <span><i style="background:#f59e0b"></i> MAYBE blocked</span>
-          <span><i style="background:#10b981"></i> OPEN road</span>
-          <span><i style="background:#06b6d4"></i> Safe route</span>
+          <button type="button" class="role-card" id="quickPwd">
+            <div>
+              <strong>PWD / BRO Highway Clearance</strong>
+              <span>Prioritized excavator dispatch queue, rubble volume estimates, and live road reopening.</span>
+            </div>
+            <span class="role-tag pwd">CLEARANCE</span>
+          </button>
         </div>
-        <details class="layers">
-          <summary>Show / hide map layers</summary>
-          <div class="layer-checks">
-            <label><input type="checkbox" id="chkPost" checked /> Photo after disaster</label>
-            <label><input type="checkbox" id="chkPre" /> Photo before disaster</label>
-            <label><input type="checkbox" id="chkChange" checked /> What changed (red tint)</label>
-            <label><input type="checkbox" id="chkRoads" checked /> Roads</label>
-            <label><input type="checkbox" id="chkCopernicus" /> Official damage survey (purple)</label>
-            <label><input type="checkbox" id="chkFacilities" checked /> Villages &amp; clinics</label>
-          </div>
-          <label class="slider">Fade the after-photo
-            <input type="range" id="postOpacity" min="0" max="1" step="0.05" value="0.92" />
-          </label>
-        </details>
-      </section>
 
-      <aside class="stack">
-        <section class="card">
-          <h2>1 · Find a safe route</h2>
-          <div class="form-row">
-            <label for="fromFac">Start from</label>
+        <div class="divider">or sign in with credentials</div>
+
+        <form id="loginForm">
+          <div class="field">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="commander@mappa.org or engineer@mappa.org" required />
+          </div>
+          <div class="field">
+            <label for="loginPass">Password</label>
+            <input id="loginPass" type="password" placeholder="Enter password" required />
+          </div>
+          <button type="submit" class="btn btn-dark btn-full">Sign in</button>
+          <div id="loginErr" class="err-text"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================
+       2. AUTHENTICATED APP SHELL
+       ======================== -->
+  <div id="appShell" class="app-shell hidden">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="app-brand">
+          <div class="brand-badge" style="width:28px;height:28px;font-size:13px">M</div>
+          <span>MAPPA</span>
+        </div>
+        <span id="rolePill" class="role-pill ndrf">NDRF RESCUE</span>
+
+        <!-- NDRF Navigation (shown ONLY to commander) -->
+        <nav id="ndrfNav" class="nav-pills hidden">
+          <button class="nav-pill active" data-view="ndrfMapView">Situation Map &amp; Route</button>
+          <button class="nav-pill" data-view="ndrfPilotView">Drone Flight &amp; New Map</button>
+        </nav>
+
+        <!-- PWD Navigation (shown ONLY to engineer) -->
+        <nav id="pwdNav" class="nav-pills hidden">
+          <button class="nav-pill active" data-view="pwdQueueView">Clearance Queue</button>
+          <button class="nav-pill" data-view="pwdLedgerView">Damage Ledger</button>
+        </nav>
+      </div>
+
+      <div class="header-right">
+        <select id="missionSelect" class="mission-select" aria-label="Select disaster area"></select>
+        <div id="graphStatus" class="status-dot"><i></i><span>Routing ready</span></div>
+        <div class="user-menu">
+          <span id="userName" class="user-name"></span>
+          <button id="btnSwitchRole" class="btn btn-sm">Switch Role</button>
+          <button id="btnSignOut" class="btn btn-sm">Sign Out</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =================================================
+         AUDIENCE A: NDRF / SDRF RESCUE & DRONE WORKSPACE
+         ================================================= -->
+    <main id="ndrfMapView" class="ndrf-map-workspace hidden">
+      <div class="map-stage">
+        <div class="map-float-top">
+          <div id="ndrfSituationStrip" class="situation-strip">Loading map…</div>
+        </div>
+
+        <div id="ndrfMap"></div>
+
+        <div class="map-float-bottom">
+          <div class="layer-bar">
+            <label><input type="checkbox" id="chkPost" checked /> After photo</label>
+            <label><input type="checkbox" id="chkPre" /> Before photo</label>
+            <label><input type="checkbox" id="chkChange" checked /> Damage tint</label>
+            <label><input type="checkbox" id="chkRoads" checked /> Roads</label>
+            <label><input type="checkbox" id="chkCopernicus" /> Official survey</label>
+            <label>Fade <input type="range" id="postOpacity" min="0" max="1" step="0.05" value="0.92" /></label>
+          </div>
+          <div class="legend-bar">
+            <span><i style="background:#c81e1e"></i>Blocked</span>
+            <span><i style="background:#d97706"></i>Caution</span>
+            <span><i style="background:#15803d"></i>Open</span>
+            <span><i style="background:#1d4ed8"></i>Safe Route</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side-drawer">
+        <div class="drawer-section">
+          <div class="section-title">Safe Rescue Route</div>
+          <div class="field">
+            <label for="fromFac">From</label>
             <select id="fromFac"></select>
           </div>
-          <div class="form-row">
-            <label for="toFac">Go to</label>
+          <div class="field">
+            <label for="toFac">To</label>
             <select id="toFac"></select>
           </div>
-          <label class="check"><input type="checkbox" id="avoidUncertain" /> Also avoid “maybe blocked” roads</label>
-          <button id="btnComputeDetour" class="btn btn-big btn-cyan">Find safe route</button>
-          <div id="detourResult" class="detour-result" style="display:none"></div>
-          <details class="tech">
-            <summary>For engineers: the database query used</summary>
-            <span id="detourEngineChip" class="muted"></span>
-            <pre id="detourCypher" class="cypher-box"></pre>
-          </details>
-        </section>
+          <label style="display:flex;align-items:center;gap:7px;font-size:13px;margin-bottom:10px;cursor:pointer">
+            <input type="checkbox" id="avoidUncertain" style="width:15px;height:15px" /> Avoid caution roads too
+          </label>
+          <button id="btnComputeDetour" class="btn btn-red btn-full">Find Safe Route</button>
+          <div id="detourResult" class="route-outcome hidden"></div>
+        </div>
 
-        <section class="card">
-          <h2>2 · Take the map with you</h2>
-          <p class="muted">Opens in QGIS, Google Earth, or any phone map app.</p>
-          <div class="export-grid" id="exportLinks"></div>
-        </section>
+        <div class="drawer-section">
+          <div class="section-title">Take-Away Field Exports</div>
+          <div id="exportList" class="export-list"></div>
+        </div>
 
-        <section class="card trust">
-          <h2>Can I trust this map?</h2>
-          <div id="trustNote" class="prose"></div>
-        </section>
-
-        <section class="card tiny-kpis">
-          <div class="kpi"><div class="val" id="kpiArea">--</div><div class="lbl">Area covered (km²)</div></div>
-          <div class="kpi"><div class="val" id="kpiBlocked">--</div><div class="lbl">Blocked road</div></div>
-          <div class="kpi"><div class="val" id="kpiIsolated">--</div><div class="lbl">People cut off</div></div>
-          <div class="kpi"><div class="val" id="kpiAcc">--</div><div class="lbl">Map position accuracy</div></div>
-          <div class="muted" id="accuracyLine" style="grid-column:1/-1"></div>
-        </section>
+        <div class="drawer-section">
+          <div class="section-title">Map Reliability</div>
+          <div id="ndrfTrustBox" class="trust-box"></div>
+        </div>
       </aside>
-    </div>
-  </main>
+    </main>
 
-  <!-- VIEW 2 -->
-  <section id="pwdView" class="view">
-    <section class="summary" id="pwdSummary">Loading…</section>
-    <div class="grid-3" style="margin-bottom:14px">
-      <div class="card">
-        <h3>Places cut off</h3>
-        <div class="bignum red" id="pwdIsoCount">--</div>
-        <div class="muted" id="pwdIsoNames"></div>
-      </div>
-      <div class="card">
-        <h3>People cut off</h3>
-        <div class="bignum amber" id="pwdIsoPop">--</div>
-        <div class="muted">Estimated, from the nearest town or road end</div>
-      </div>
-      <div class="card">
-        <h3>Actions</h3>
-        <div class="stack">
-          <button id="btnQuickEngineer" class="btn btn-big btn-primary">Sign in as Road Engineer</button>
-          <a id="btnExportLedger" class="btn btn-green" href="#">Download work list (CSV)</a>
+    <!-- NDRF View 2: Drone Flight & New Map -->
+    <section id="ndrfPilotView" class="page-scroll hidden">
+      <div class="page-container">
+        <div class="page-header">
+          <h2>Drone Flight Plan &amp; New Survey Map</h2>
+          <p>Generate a pre-loaded flight grid before takeoff, or process newly captured imagery offline.</p>
         </div>
-        <div class="muted" style="margin-top:8px" id="pwdEngineNote"></div>
-      </div>
-    </div>
 
-    <div class="card">
-      <h2>Clear these roads in this order</h2>
-      <p class="muted">Top of the list = reconnects the most people for the least digging.</p>
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Order</th><th>Road</th><th>Length</th><th>Rubble (est.)</th>
-              <th>People reconnected</th><th>Status</th><th>Team</th><th>Update</th>
-            </tr>
-          </thead>
-          <tbody id="pwdTableBody"></tbody>
-        </table>
-      </div>
-      <details class="tech">
-        <summary>For engineers: the database query used</summary>
-        <pre id="pwdCypher" class="cypher-box"></pre>
-      </details>
-    </div>
-  </section>
-
-  <!-- VIEW 1: FLY -->
-  <section id="flyView" class="view"><div class="narrow"><div class="card">
-        <h2>🚁 Before you fly: get a flight plan</h2>
-        <p class="muted">Pick the area. Get a ready-made flight path and a one-page pilot card.</p>
-        <div class="grid-2">
-          <div class="form-row"><label>Latitude</label><input id="fpLat" type="number" step="0.0001" value="28.1622" /></div>
-          <div class="form-row"><label>Longitude</label><input id="fpLon" type="number" step="0.0001" value="85.3345" /></div>
-          <div class="form-row"><label>Area width (m)</label><input id="fpW" type="number" value="600" /></div>
-          <div class="form-row"><label>Area length (m)</label><input id="fpH" type="number" value="500" /></div>
-          <div class="form-row"><label>Flying height (m)</label><input id="fpAlt" type="number" value="90" /></div>
-        </div>
-        <div class="stack" style="margin-top:8px">
-          <button id="btnCalcPlan" class="btn btn-big btn-cyan">Show flight summary</button>
-          <a id="btnDownloadKml" class="btn btn-big btn-primary" href="/api/tools/flight-plan.kml?lat=28.1622&lon=85.3345&width_m=600&height_m=500&alt_m=90">Download flight path (load into drone app)</a>
-          <a class="btn btn-big btn-green" href="/api/tools/capture-card.pdf">Print the 5-step pilot card</a>
-        </div>
-        <div id="planResult" class="detour-result" style="margin-top:12px"></div>
-      </div></div></section>
-
-  <!-- VIEW 2: MAKE MAP -->
-  <section id="makeView" class="view"><div class="narrow"><div class="card">
-        <h2>🗺️ After you fly: make the map</h2>
-        <ol class="steps">
-          <li>Add the <b>stitched photo of the area now</b> (.tif)</li>
-          <li>Add an <b>older photo of the same area</b> (.tif)</li>
-          <li>Add the <b>road file</b> (.geojson)</li>
-          <li>Press the big button. Takes a few minutes on a laptop. No internet needed.</li>
-        </ol>
-        <form id="uploadForm">
-          <div class="form-row"><label>Name this map</label><input name="name" required placeholder="e.g. Highway cut near Dhunche" /></div>
-          <div class="form-row"><label>Photo now (after disaster)</label><input type="file" name="ortho" accept=".tif,.tiff" required /></div>
-          <div class="form-row"><label>Older photo (before disaster)</label><input type="file" name="base" accept=".tif,.tiff" required /></div>
-          <div class="form-row"><label>Roads file</label><input type="file" name="roads" accept=".geojson,.json,.gpkg" required /></div>
-          <input type="hidden" name="location" value="Field survey area" />
-          <details class="tech">
-            <summary>Advanced settings (leave as is if unsure)</summary>
+        <div class="two-col">
+          <div class="panel">
+            <h3>Before Takeoff: Flight Grid &amp; Pilot Card</h3>
+            <p class="desc">Enter the landslide centre and size to get exact flight numbers and a KML file for your drone controller.</p>
             <div class="grid-2">
-              <div class="form-row"><label>Detail level (m per pixel)</label><input name="grid_res" type="number" step="0.5" value="1.5" /></div>
-              <div class="form-row"><label>Older photo accuracy (m)</label><input name="base_accuracy" type="number" step="1" value="10" /></div>
+              <div class="field"><label>Latitude</label><input id="fpLat" type="number" step="0.0001" value="28.1622" /></div>
+              <div class="field"><label>Longitude</label><input id="fpLon" type="number" step="0.0001" value="85.3345" /></div>
+              <div class="field"><label>Area Width (m)</label><input id="fpW" type="number" value="600" /></div>
+              <div class="field"><label>Area Length (m)</label><input id="fpH" type="number" value="500" /></div>
+              <div class="field"><label>Flight Height (m)</label><input id="fpAlt" type="number" value="90" /></div>
             </div>
-          </details>
-          <button type="submit" class="btn btn-big btn-primary" id="btnRunUpload">Make the map</button>
-          <div id="uploadStatus" class="muted" style="margin-top:8px"></div>
-        </form>
-      </div>
-    </div>
-  </section>
-
-  <!-- AUTH MODAL -->
-  <div id="authModal" class="modal-backdrop">
-    <div class="modal">
-      <h2>Who are you?</h2>
-      <div class="stack">
-        <button class="btn btn-big btn-cyan" id="fillCommander">I lead the rescue team</button>
-        <button class="btn btn-big btn-primary" id="fillEngineer">I run the road crews (PWD / BRO)</button>
-      </div>
-      <details class="tech" style="margin-top:12px">
-        <summary>Use my own email &amp; password</summary>
-        <form id="loginForm">
-          <div class="form-row"><label>Email</label><input id="loginEmail" type="email" /></div>
-          <div class="form-row"><label>Password</label><input id="loginPass" type="password" /></div>
-          <button type="submit" class="btn btn-primary">Sign in</button>
-        </form>
-      </details>
-      <div id="authErr" class="muted" style="color:#f87171;margin-top:8px"></div>
-      <button type="button" class="btn" id="closeAuth" style="margin-top:10px">Cancel</button>
-    </div>
-  </div>
-
-  <!-- ROUTING MODAL -->
-  <div id="neo4jModal" class="modal-backdrop">
-    <div class="modal">
-      <h2>Smart routing</h2>
-      <div id="neo4jStatusDetail" class="detour-result" style="margin-bottom:12px"></div>
-      <details class="tech">
-        <summary>For engineers: connect the cloud database (Neo4j)</summary>
-        <form id="neo4jForm">
-          <div class="form-row"><label>Database address</label><input id="n4jUri" placeholder="neo4j+s://xxxx.databases.neo4j.io" /></div>
-          <div class="grid-2">
-            <div class="form-row"><label>Username</label><input id="n4jUser" value="neo4j" /></div>
-            <div class="form-row"><label>Database</label><input id="n4jDb" value="neo4j" /></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+              <button id="btnCalcPlan" class="btn btn-dark">Calculate Flight</button>
+              <a id="btnDownloadKml" class="btn btn-red" href="/api/tools/flight-plan.kml?lat=28.1622&lon=85.3345&width_m=600&height_m=500&alt_m=90">Download Grid KML</a>
+              <a class="btn" href="/api/tools/capture-card.pdf">Print 5-Step Pilot Card</a>
+            </div>
+            <div id="planResult" class="route-outcome" style="margin-top:12px"></div>
           </div>
-          <div class="form-row"><label>Password</label><input id="n4jPass" type="password" /></div>
-          <button type="submit" class="btn btn-cyan">Connect</button>
-          <div id="neo4jErr" class="muted" style="color:#f87171;margin-top:8px"></div>
-        </form>
-      </details>
-      <button type="button" class="btn" id="closeNeo4j" style="margin-top:10px">Close</button>
-    </div>
+
+          <div class="panel">
+            <h3>After Landing: Build a New Road Map</h3>
+            <p class="desc">Upload the stitched after-disaster photo, an older reference photo, and the local road file.</p>
+            <form id="uploadForm">
+              <div class="field"><label>Area Name</label><input name="name" required placeholder="e.g. Syabrubesi North Sector" /></div>
+              <div class="field"><label>After-Disaster Photo (.tif)</label><input type="file" name="ortho" accept=".tif,.tiff" required /></div>
+              <div class="field"><label>Older Reference Photo (.tif)</label><input type="file" name="base" accept=".tif,.tiff" required /></div>
+              <div class="field"><label>Road Network (.geojson or .gpkg)</label><input type="file" name="roads" accept=".geojson,.json,.gpkg" required /></div>
+              <input type="hidden" name="location" value="Field Survey" />
+              <input type="hidden" name="grid_res" value="1.5" />
+              <input type="hidden" name="base_accuracy" value="10" />
+              <button type="submit" class="btn btn-dark btn-full">Generate Map &amp; Update Routes</button>
+              <div id="uploadStatus" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================
+         AUDIENCE B: PWD / BRO HIGHWAY CLEARANCE WORKSPACE
+         ================================================= -->
+    <main id="pwdQueueView" class="pwd-shell hidden">
+      <div class="pwd-kpi-strip">
+        <div class="metric-box">
+          <div class="label">Blocked Road Length</div>
+          <div class="num red" id="pwdKpiBlocked">--</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">Cut-Off Population</div>
+          <div class="num red" id="pwdKpiPop">--</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">Est. Total Rubble</div>
+          <div class="num blue" id="pwdKpiRubble">--</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">Cuts Reopened</div>
+          <div class="num green" id="pwdKpiCleared">--</div>
+        </div>
+      </div>
+
+      <div class="pwd-split">
+        <div class="queue-pane">
+          <div class="queue-toolbar">
+            <div>
+              <h2>Excavator Clearance Priority Queue</h2>
+              <p style="font-size:12.5px;color:var(--muted)">Ranked by isolated population reconnected per cubic metre of rubble. Click any cut to locate it on the map.</p>
+            </div>
+            <a id="btnExportLedger" class="btn btn-dark btn-sm" href="#">Export CSV Ledger</a>
+          </div>
+          <div id="cutList" class="cut-list"></div>
+        </div>
+
+        <div class="pwd-map-pane">
+          <div id="pwdMap"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- PWD View 2: Damage Ledger -->
+    <section id="pwdLedgerView" class="page-scroll hidden">
+      <div class="page-container">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
+          <div>
+            <h2>Corridor Damage &amp; Work-Order Ledger</h2>
+            <p>Complete breakdown of blocked stretches, estimated debris volume, and clearance team status for relief records.</p>
+          </div>
+          <a id="btnExportLedger2" class="btn btn-dark" href="#">Download CSV for NDMA / PWD</a>
+        </div>
+        <div class="panel" style="padding:0;overflow:hidden">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Road</th>
+                <th>Length</th>
+                <th>Est. Rubble</th>
+                <th>Dependent Settlements</th>
+                <th>Status</th>
+                <th>Assigned Crew</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 
   <div id="toast" class="toast"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=4"></script>
 </body>
 </html>
