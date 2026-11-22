@@ -160,7 +160,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "script-src 'self' https://unpkg.com https://cdn.jsdelivr.net 'unsafe-inline'; "
             "style-src 'self' https://unpkg.com https://fonts.googleapis.com 'unsafe-inline'; "
             "font-src 'self' https://fonts.gstatic.com data:; "
-            "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.basemaps.cartocdn.com; "
+            "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.basemaps.cartocdn.com; "
             "connect-src 'self'; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "

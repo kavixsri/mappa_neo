@@ -175,50 +175,53 @@ input:focus, select:focus { outline: 2px solid var(--signal-blue); outline-offse
 }
 
 .app-header {
-  height: 56px;
+  min-height: 56px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 0 20px;
+  padding: 8px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px 14px;
+  flex-wrap: wrap;
   flex: none;
   z-index: 20;
 }
 
-.header-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.app-brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 16px; }
+.header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.app-brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15.5px; }
 .role-pill {
   font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  padding: 3px 9px; border-radius: 6px; letter-spacing: 0.3px;
+  padding: 3px 8px; border-radius: 6px; letter-spacing: 0.3px; white-space: nowrap;
 }
 .role-pill.ndrf { background: var(--signal-red-bg); color: var(--signal-red); border: 1px solid #fecaca; }
 .role-pill.pwd { background: var(--signal-blue-bg); color: var(--signal-blue); border: 1px solid #bfdbfe; }
 
-.nav-pills { display: flex; gap: 4px; margin-left: 8px; }
+.nav-pills { display: flex; gap: 4px; }
 .nav-pill {
-  background: transparent; border: none; padding: 7px 12px; border-radius: 7px;
-  font-family: var(--font-sans); font-size: 13.5px; font-weight: 600;
-  color: var(--muted); cursor: pointer;
+  background: transparent; border: none; padding: 6px 11px; border-radius: 7px;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  color: var(--muted); cursor: pointer; white-space: nowrap;
 }
 .nav-pill:hover { background: var(--surface-subtle); color: var(--ink); }
 .nav-pill.active { background: var(--ink); color: #fff; }
 
-.header-right { display: flex; align-items: center; gap: 10px; }
+.header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .mission-select {
-  width: auto; max-width: 280px; padding: 6px 10px; font-size: 13px; font-weight: 600;
+  width: auto; max-width: 215px; padding: 6px 9px; font-size: 12.5px; font-weight: 600;
   background: var(--surface-subtle); border-color: var(--border);
 }
 .status-dot {
   display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);
-  padding: 5px 10px; border-radius: 99px; background: var(--surface-subtle); border: 1px solid var(--border);
+  padding: 4px 9px; border-radius: 99px; background: var(--surface-subtle); border: 1px solid var(--border);
+  white-space: nowrap;
 }
 .status-dot i { width: 7px; height: 7px; border-radius: 50%; background: var(--signal-green); display: inline-block; }
 .status-dot.offline i { background: var(--signal-amber); }
 
-.user-menu { display: flex; align-items: center; gap: 8px; padding-left: 10px; border-left: 1px solid var(--border); }
-.user-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.user-menu { display: flex; align-items: center; gap: 6px; padding-left: 8px; border-left: 1px solid var(--border); }
+.user-name { font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+@media (max-width: 1180px) { .user-name, .status-dot { display: none; } }
 
 /* ========================
    AUDIENCE A: NDRF WORKSPACE
