@@ -40,8 +40,8 @@ async function api(url, opts = {}) {
 /* ---------- Map Setup ---------- */
 function initMap() {
   state.map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([28.162, 85.336], 14);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: "&copy; OpenStreetMap &copy; CARTO",
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
   }).addTo(state.map);
 }
@@ -326,6 +326,13 @@ async function handleWorkOrderAction(woId, newStatus) {
 /* ---------- Audit / Validation View ---------- */
 const TIME_LABELS = {"1_load_and_resample":"Load photos","2_register_to_base":"Line up the photos","3_change_detection":"Find what changed","4_road_scoring":"Check each road","5_export_geodata":"Save map files","6_brief_figure":"Draw the map","7_pdf":"Make the report","total":"TOTAL"};
 function renderAuditView(m) {
+  const r0 = m.summary, g0 = r0.georeferencing || {}, cv0 = r0.copernicus_validation, v0 = r0.validation;
+  let t = `<p>Positions can be off by up to about <b>${Math.round(g0.horizontal_accuracy_95_m || 10)} m</b>. Not checked on the ground.</p>`;
+  if (cv0 && cv0.available) t += `<p>Checked against the official flood survey: we caught about <b>${Math.round(cv0.recall_vs_copernicus_damaged * 100)}%</b> of the damaged road. <b>Expect false alarms</b> (photos only).</p>`;
+  else if (v0) t += `<p>Practice map: we know the right answer, and all blocked roads were found.</p>`;
+  t += r0.change?.height_used ? "" : `<p>A drone height scan would make blocked-road calls much more reliable.</p>`;
+  const tn = $("trustNote"); if (tn) tn.innerHTML = t;
+  if (!$("honestyBox")) return;
   const rep = m.summary;
   const g = rep.georeferencing || {};
   const ch = rep.change || {};
@@ -372,6 +379,7 @@ function renderAuditView(m) {
 }
 
 async function loadAuditLogs() {
+  if (!$("auditLogBox")) return;
   if (!state.user) {
     $("auditLogBox").textContent = "Sign in to view authenticated audit logs.";
     return;

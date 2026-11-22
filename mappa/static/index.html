@@ -27,10 +27,10 @@
   </header>
 
   <nav class="tabs" role="tablist">
-    <button class="tab active" data-tab="mapView">🗺️ Map &amp; safe route</button>
-    <button class="tab" data-tab="pwdView">🚜 Road crews: what to clear first</button>
-    <button class="tab" data-tab="opsView">🚁 Make a new map / Plan a flight</button>
-    <button class="tab" data-tab="auditView">✔ How much to trust this map</button>
+    <button class="tab" data-tab="flyView"><span class="n">1</span> Plan the flight</button>
+    <button class="tab" data-tab="makeView"><span class="n">2</span> Make the map</button>
+    <button class="tab active" data-tab="mapView"><span class="n">3</span> Blocked roads &amp; safe route</button>
+    <button class="tab" data-tab="pwdView"><span class="n">4</span> What to clear first</button>
   </nav>
 
   <!-- VIEW 1 -->
@@ -91,6 +91,11 @@
           <div class="export-grid" id="exportLinks"></div>
         </section>
 
+        <section class="card trust">
+          <h2>Can I trust this map?</h2>
+          <div id="trustNote" class="prose"></div>
+        </section>
+
         <section class="card tiny-kpis">
           <div class="kpi"><div class="val" id="kpiArea">--</div><div class="lbl">Area covered (km²)</div></div>
           <div class="kpi"><div class="val" id="kpiBlocked">--</div><div class="lbl">Blocked road</div></div>
@@ -147,10 +152,8 @@
     </div>
   </section>
 
-  <!-- VIEW 3 -->
-  <section id="opsView" class="view">
-    <div class="grid-2">
-      <div class="card">
+  <!-- VIEW 1: FLY -->
+  <section id="flyView" class="view"><div class="narrow"><div class="card">
         <h2>🚁 Before you fly: get a flight plan</h2>
         <p class="muted">Pick the area. Get a ready-made flight path and a one-page pilot card.</p>
         <div class="grid-2">
@@ -166,9 +169,10 @@
           <a class="btn btn-big btn-green" href="/api/tools/capture-card.pdf">Print the 5-step pilot card</a>
         </div>
         <div id="planResult" class="detour-result" style="margin-top:12px"></div>
-      </div>
+      </div></div></section>
 
-      <div class="card">
+  <!-- VIEW 2: MAKE MAP -->
+  <section id="makeView" class="view"><div class="narrow"><div class="card">
         <h2>🗺️ After you fly: make the map</h2>
         <ol class="steps">
           <li>Add the <b>stitched photo of the area now</b> (.tif)</li>
@@ -192,30 +196,6 @@
           <button type="submit" class="btn btn-big btn-primary" id="btnRunUpload">Make the map</button>
           <div id="uploadStatus" class="muted" style="margin-top:8px"></div>
         </form>
-      </div>
-    </div>
-  </section>
-
-  <!-- VIEW 4 -->
-  <section id="auditView" class="view">
-    <div class="grid-2" style="margin-bottom:14px">
-      <div class="card">
-        <h2>How accurate is this map?</h2>
-        <div id="honestyBox" class="prose"></div>
-      </div>
-      <div class="card">
-        <h2>Did we check it against the real world?</h2>
-        <div id="validationBox" class="prose"></div>
-      </div>
-    </div>
-    <div class="grid-2">
-      <div class="card">
-        <h2>How fast was it?</h2>
-        <div id="timingBox"></div>
-      </div>
-      <div class="card">
-        <h2>Who did what (activity log)</h2>
-        <div id="auditLogBox" class="muted">Sign in to see the activity log.</div>
       </div>
     </div>
   </section>

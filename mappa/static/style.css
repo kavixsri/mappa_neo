@@ -94,3 +94,8 @@ th { color:var(--muted); font-size:13px; background:#0f182a; }
   border:2px solid #38bdf8; padding:14px 16px; border-radius:10px; font-size:16px; z-index:10000; display:none; }
 .toast.show { display:block; }
 .muted { color:var(--muted); font-size:14px; }
+
+.narrow { max-width:720px; margin:0 auto; }
+.tab .n { display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%; background:#2c3b57; margin-right:8px; font-size:14px; }
+.tab.active .n { background:var(--accent); }
+.trust { border-color:#475a7a; }
