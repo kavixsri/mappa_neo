@@ -434,6 +434,33 @@ table { width: 100%; border-collapse: collapse; font-size: 13px; background: var
 th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
 th { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); background: var(--surface-subtle); }
 
+/* Visual Inspection Modal (Qwen-VL) */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(17, 24, 39, 0.58);
+  backdrop-filter: blur(3px); z-index: 9000;
+  display: grid; place-items: center; padding: 18px;
+}
+.inspect-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; width: 100%; max-width: 720px;
+  box-shadow: 0 24px 60px rgba(17, 24, 39, 0.25); overflow: hidden;
+}
+.inspect-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface-subtle);
+}
+.inspect-head h3 { font-size: 16px; font-weight: 800; }
+.inspect-body { padding: 18px; font-size: 13.5px; line-height: 1.5; }
+.inspect-img {
+  width: 100%; border-radius: 8px; border: 1px solid var(--border); display: block; margin-bottom: 14px;
+}
+.verdict-card {
+  padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-subtle);
+}
+.verdict-card.CONFIRMED_BLOCKED { background: var(--signal-red-bg); border-color: #fecaca; }
+.verdict-card.POSSIBLE_DAMAGE { background: var(--signal-amber-bg); border-color: #fde68a; }
+.verdict-card.FALSE_ALARM_CLEAR { background: var(--signal-green-bg); border-color: #bbf7d0; }
+
 /* Toast */
 .toast {
   position: fixed; bottom: 20px; right: 20px; z-index: 9999;

@@ -213,7 +213,12 @@ function renderNdrfWorkspace() {
     },
     onEachFeature: (f, layer) => {
       const p = f.properties || {};
-      layer.bindPopup(`<strong>Road ${esc(p.name)}</strong><br/>Status: <b>${esc(ROAD_WORDS[p.status] || p.status)}</b><br/>Length: ${esc(p.length_m)} m`);
+      const coords = f.geometry?.coordinates || [];
+      const mid = coords.length ? coords[Math.floor(coords.length / 2)] : null;
+      const btnHtml = mid
+        ? `<br/><button class="btn btn-sm btn-dark" style="margin-top:6px" onclick="window.inspectCut(${mid[1]},${mid[0]},'${esc(p.name)}','${esc(p.status)}')">Inspect Before/After (Qwen-VL)</button>`
+        : "";
+      layer.bindPopup(`<strong>Road ${esc(p.name)}</strong><br/>Status: <b>${esc(ROAD_WORDS[p.status] || p.status)}</b><br/>Length: ${esc(p.length_m)} m${btnHtml}`);
     },
   });
   if ($("chkRoads").checked) state.ndrfLayers.roads.addTo(state.ndrfMap);
@@ -337,7 +342,8 @@ function renderPwdWorkspace() {
         </div>
         <div class="cut-actions">
           <span class="badge badge-${esc(st)}">${st === "OPEN" ? "BLOCKED" : st === "DISPATCHED" ? "CREW SENT" : "REOPENED"}</span>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="btn btn-sm" data-inspect="1" data-lat="${item.lat}" data-lon="${item.lon}" data-road="${esc(item.road_name)}" data-st="${isCleared ? "CLEAR" : "BLOCKED"}">Inspect (Qwen)</button>
             ${!isCleared
               ? `<button class="btn btn-sm" data-wo="${esc(item.work_order_id)}" data-act="DISPATCHED">Dispatch</button>
                  <button class="btn btn-sm btn-green" data-wo="${esc(item.work_order_id)}" data-act="CLEARED">Mark Open</button>`
@@ -365,6 +371,12 @@ function renderPwdWorkspace() {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         updateWorkOrder(btn.dataset.wo, btn.dataset.act);
+      });
+    });
+    list.querySelectorAll("button[data-inspect]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openVisualInspect(parseFloat(btn.dataset.lat), parseFloat(btn.dataset.lon), btn.dataset.road, btn.dataset.st);
       });
     });
   }
@@ -419,6 +431,45 @@ async function updateWorkOrder(woId, newStatus) {
   } catch (e) { toast(e.message); }
 }
 
+/* ---------- Qwen2.5-VL Before/After Visual Inspection ---------- */
+async function openVisualInspect(lat, lon, roadName, mappaStatus) {
+  const modal = $("inspectModal");
+  modal.classList.remove("hidden");
+  $("inspectTitle").textContent = `Visual Check — Road ${roadName}`;
+  $("inspectMeta").textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)} · Flagged: ${mappaStatus}`;
+  $("inspectBody").innerHTML = `<p style="color:var(--muted)">Cropping aligned Before vs. After photos and querying Qwen-VL…</p>`;
+  try {
+    const res = await api(`/api/missions/${state.missionId}/inspect-point`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat, lon, road_name: roadName, mappa_status: mappaStatus }),
+    });
+    const verdictLabel = ({
+      CONFIRMED_BLOCKED: "CONFIRMED BLOCKED",
+      POSSIBLE_DAMAGE: "POSSIBLE DAMAGE",
+      FALSE_ALARM_CLEAR: "FALSE ALARM — ROAD CLEAR",
+      UNVERIFIED_NO_QWEN: "BEFORE / AFTER CROP READY (QWEN KEY NOT SET)",
+      API_ERROR: "QWEN-VL API ERROR (MANUAL CHECK)",
+    })[res.verdict] || res.verdict;
+    const confStr = res.confidence != null ? ` · Confidence: ${Math.round(res.confidence * 100)}%` : "";
+    const modelStr = res.model ? ` · Model: ${esc(res.model)}` : "";
+    $("inspectBody").innerHTML = `
+      <img class="inspect-img" src="${res.patch_data_uri}" alt="Before and after comparison crop" />
+      <div class="verdict-card ${esc(res.verdict)}">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+          <strong>${esc(verdictLabel)}</strong>
+          <span class="mono" style="font-size:11.5px;color:var(--muted)">${esc(res.damage_type || "")}${confStr}${modelStr}</span>
+        </div>
+        <p style="margin-bottom:6px">${esc(res.summary)}</p>
+        <p style="font-size:12.5px;color:var(--ink-2)"><strong>Recommended action:</strong> ${esc(res.recommended_action)}</p>
+      </div>
+    `;
+  } catch (e) {
+    $("inspectBody").innerHTML = `<p class="err-text">${esc(e.message)}</p>`;
+  }
+}
+window.inspectCut = openVisualInspect;
+
 /* ---------- Flight Planner ---------- */
 async function calcFlightPlan() {
   const lat = parseFloat($("fpLat").value), lon = parseFloat($("fpLon").value);
@@ -464,6 +515,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (state.ndrfLayers.post) state.ndrfLayers.post.setOpacity(parseFloat(e.target.value));
   });
   $("btnComputeDetour").addEventListener("click", computeDetour);
+  $("closeInspect").addEventListener("click", () => $("inspectModal").classList.add("hidden"));
+  $("inspectModal").addEventListener("click", (e) => { if (e.target === $("inspectModal")) $("inspectModal").classList.add("hidden"); });
+  $("btnNdrfInspectTop").addEventListener("click", () => {
+    const top = state.pq?.queue?.find((q) => q.currently_blocked) || state.pq?.queue?.[0];
+    if (!top) { toast("No blocked cut to inspect."); return; }
+    openVisualInspect(top.lat, top.lon, top.road_name, "BLOCKED");
+  });
 
   // Pilot tools & upload
   $("btnCalcPlan").addEventListener("click", calcFlightPlan);

@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTex
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, pipeline, planner
+from . import __version__, pipeline, planner, qwen_vision
 from .db import Database
 from .graph_neo4j import MappaGraphService
 from .security import (
@@ -198,6 +198,13 @@ class FlightPlanRequest(BaseModel):
     alt_m: float = Field(default=90, ge=30, le=200)
 
 
+class InspectPointRequest(BaseModel):
+    lat: float = Field(..., ge=-90, le=90)
+    lon: float = Field(..., ge=-180, le=180)
+    road_name: str = Field(default="Road segment", max_length=120)
+    mappa_status: str = Field(default="BLOCKED", max_length=32)
+
+
 # --- Frontend Entry ---
 @app.get("/", response_class=HTMLResponse)
 def serve_index():
@@ -216,7 +223,32 @@ def health():
         "offline_capable": True,
         "missions_count": len(db.list_missions()),
         "neo4j": graph_svc.status(),
+        "qwen_vl": qwen_vision.qwen_status(),
     }
+
+
+@app.get("/api/qwen/status")
+def get_qwen_status():
+    return qwen_vision.qwen_status()
+
+
+@app.post("/api/missions/{mission_id}/inspect-point")
+def inspect_mission_point(mission_id: str, body: InspectPointRequest):
+    validate_safe_id(mission_id, "mission_id")
+    m = db.get_mission(mission_id)
+    if not m or not m.get("bounds_wgs84"):
+        raise HTTPException(status_code=404, detail="Mission imagery not available for visual inspection.")
+    try:
+        return qwen_vision.inspect_with_qwen(
+            out_dir=Path(m["output_dir"]),
+            bounds_wgs84=m["bounds_wgs84"],
+            lat=body.lat,
+            lon=body.lon,
+            road_name=body.road_name,
+            mappa_status=body.mappa_status,
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 # --- Authentication ---
