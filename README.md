@@ -1,8 +1,9 @@
 # MAPPA-Neo — The First Map After The Landslide
 
 **Offline-first rapid disaster mapping platform** turning consumer drone or post-event aerial imagery into a **georeferenced change map**, **blocked-road assessment**, **Neo4j safe detour & PWD excavator clearance priority queue**, and **QGIS-ready exports + one-page PDF brief** — running on an ordinary laptop with no ground control points and honest positional accuracy reporting.
+live deployed link - https://mappa-neo.onrender.com/
 
-> Built for **hackFront India Grand Finale** — Problem Statement: *"The First Map After The Landslide"*  
+> Problem Statement: *"The First Map After The Landslide"*  
 > Validated on **REAL 26 August 2026 Nepal Bhote Koshi / Trishuli Flash Flood** imagery (`Syabrubesi, Rasuwa District` · Copernicus EMS Activation `EMSR927`) + our controlled synthetic DSM−DEM benchmark.
 
 ![Real 2026 Nepal Bhote Koshi Flood MAPPA Output](examples/nepal_2026_run/output/map_preview.png)
@@ -65,13 +66,6 @@ python scripts/fetch_nepal_2026.py
 python scripts/run_nepal_2026.py
 ```
 
----
 
-## Finale Deliverables Included in `docs/`
-- [`docs/MARKET_FIT_CANVAS.md`](docs/MARKET_FIT_CANVAS.md) — One-page Market Fit Canvas + 3 Customer Test interview log
-- [`docs/PERSONA_USE_CASE_MATRIX.md`](docs/PERSONA_USE_CASE_MATRIX.md) — 3 User Segments (2 working end-to-end in live build)
-- [`docs/ARGOSX_SECURITY_LOG.md`](docs/ARGOSX_SECURITY_LOG.md) — Security hardening checklist + ArgosX baseline/final remediation log
-- [`docs/ablation.md`](docs/ablation.md) · [`docs/METHOD.md`](docs/METHOD.md) · [`capture_card.pdf`](capture_card.pdf)
-- [`Dockerfile`](Dockerfile) & [`render.yaml`](render.yaml) — 1-click deployment for live evaluator URL & ArgosX scanning
 
 MIT Licensed. Nepal 2026 imagery via OpenAerialMap / Vantor / Copernicus EMS (`EMSR927`) / OpenStreetMap (ODbL).
