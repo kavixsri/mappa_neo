@@ -51,6 +51,7 @@ function clearMapLayers() {
   state.layers = {};
 }
 
+function roadWord(st) { return ({BLOCKED:"BLOCKED", UNCERTAIN:"MAYBE BLOCKED", CLEAR:"OPEN", NO_DATA:"NO PHOTO COVERAGE"})[st] || st; }
 const ROAD_COLORS = { BLOCKED: "#ef4444", UNCERTAIN: "#f59e0b", CLEAR: "#10b981", NO_DATA: "#64748b" };
 const COP_COLORS = { Destroyed: "#c026d3", Damaged: "#e879f9", "Possibly damaged": "#f0abfc", "No visible damage": "#4ade80" };
 
@@ -71,16 +72,25 @@ async function loadMission(missionId) {
   const b = $("missionBanner");
   b.className = "banner " + (m.simulated ? "banner-sim" : "banner-real");
   b.innerHTML = m.simulated
-    ? `<span><strong>SIMULATED BENCHMARK:</strong> ${esc(m.name)} — Synthetic scene with known GPS error &amp; DSM−DEM ground truth.</span><span>Grid: ${esc(rep.analysis_grid_m)} m/px · Runtime: ${esc(rep.processing_time_s?.total)} s</span>`
-    : `<span><strong>REAL DISASTER EVENT:</strong> ${esc(m.name)} (${esc(m.event_date)}) — Verified Copernicus EMS EMSR927 &amp; OpenAerialMap VHR data.</span><span>Grid: ${esc(rep.analysis_grid_m)} m/px · Offline Runtime: ${esc(rep.processing_time_s?.total)} s</span>`;
+    ? `<strong>PRACTICE MAP (made-up data).</strong> Used to test the system. Not a real disaster.`
+    : `<strong>REAL DISASTER:</strong> ${esc(m.name)} (${esc(m.event_date)}). Made from real satellite photos. Processed offline in ${esc(Math.round(rep.processing_time_s?.total || 0))} seconds.`;
 
   // KPIs
   const rLen = rep.roads?.length_m_by_status || {};
   $("kpiArea").textContent = rep.area_km2;
   $("kpiBlocked").textContent = `${Math.round(rLen.BLOCKED || 0)} m`;
-  $("kpiIsolated").textContent = `${iso.isolated_population} (${iso.isolated_count} sites)`;
-  $("kpiAcc").textContent = `±${Math.round(rep.georeferencing?.horizontal_accuracy_95_m || 10)} m`;
-  $("accuracyLine").textContent = rep.georeferencing?.statement || "";
+  $("kpiIsolated").textContent = `${iso.isolated_population.toLocaleString()}`;
+  $("kpiAcc").textContent = `within ${Math.round(rep.georeferencing?.horizontal_accuracy_95_m || 10)} m`;
+  $("accuracyLine").textContent = "Positions on this map can be off by up to about " + Math.round(rep.georeferencing?.horizontal_accuracy_95_m || 10) + " m. Not checked on the ground.";
+  const top = pq.queue.find((q) => q.currently_blocked);
+  let sum = `<b>${Math.round(rLen.BLOCKED || 0)} m of road is blocked.</b> `;
+  if (iso.isolated_count > 0) {
+    sum += `<b>${iso.isolated_count} places</b> (about <b>${iso.isolated_population.toLocaleString()} people</b>) are cut off. `;
+    if (top) sum += `Clear <b>road ${esc(top.road_name)}</b> first: it reconnects about <b>${top.population_reconnected.toLocaleString()} people</b>.`;
+  } else {
+    sum += `Everyone mapped can still be reached.`;
+  }
+  $("summaryBox").innerHTML = sum;
 
   // Raster Overlays
   const bounds = m.bounds_wgs84;
@@ -106,11 +116,10 @@ async function loadMission(missionId) {
     },
     onEachFeature: (feat, layer) => {
       const p = feat.properties || {};
-      const clearedTag = p.cleared_by_pwd ? " (CLEARED BY PWD LIVE)" : "";
+      
       layer.bindPopup(
-        `<strong>${esc(p.name)}</strong><br/>Status: <b>${esc(p.status)}${clearedTag}</b><br/>` +
-        `Segment: ${esc(p.length_m)} m · Changed: ${p.changed_frac != null ? Math.round(p.changed_frac * 100) + "%" : "n/a"}<br/>` +
-        `Height anomaly: ${p.height_anom_m != null ? esc(p.height_anom_m) + " m" : "optical-only"}`
+        `<strong>Road ${esc(p.name)}</strong><br/><b>${esc(roadWord(p.status))}${p.cleared_by_pwd ? " (cleared by road crew)" : ""}</b><br/>` +
+        `${esc(p.length_m)} m stretch · ${p.changed_frac != null ? Math.round(p.changed_frac * 100) + "% of it looks changed" : ""}`
       );
     },
   });
@@ -126,7 +135,7 @@ async function loadMission(missionId) {
     }),
     onEachFeature: (feat, layer) => {
       const p = feat.properties || {};
-      layer.bindPopup(`<strong>Copernicus EMS EMSR927</strong><br/>Grading: <b>${esc(p.damage_gra || "Graded")}</b><br/>Type: ${esc(p.obj_type || p.info || "Road")}`);
+      layer.bindPopup(`<strong>Official damage survey</strong><br/>Verdict: <b>${esc(p.damage_gra || "Surveyed")}</b>`);
     },
   });
   if ($("chkCopernicus").checked && copGj.features?.length) state.layers.copernicus.addTo(state.map);
@@ -141,7 +150,7 @@ async function loadMission(missionId) {
   fromSel.innerHTML = "";
   toSel.innerHTML = "";
   allFacs.forEach((f) => {
-    const tag = f.is_staging ? " [STAGING BASE]" : (f.reachable ? " [Reachable]" : " [CUT OFF]");
+    const tag = f.is_staging ? " (start point)" : (f.reachable ? "" : " — CUT OFF");
     fromSel.add(new Option(`${f.name}${tag}`, f.id));
     toSel.add(new Option(`${f.name}${tag}`, f.id));
   });
@@ -156,13 +165,12 @@ async function loadMission(missionId) {
 
   // Exports
   const exports = [
-    ["brief.pdf", "One-Page PDF Brief", "btn-primary"],
-    ["roads_status.gpkg", "QGIS GeoPackage", "btn-cyan"],
-    ["roads_status.geojson", "Roads GeoJSON", ""],
-    ["roads_status.kml", "Google Earth KML", ""],
-    ["change_polygons.geojson", "Change Polygons", ""],
-    ["blocked_and_uncertain_stretches.csv", "Blocked CSV", ""],
-    ["report.json", "Audit Report JSON", ""],
+    ["brief.pdf", "Print 1-page report", "btn-primary"],
+    ["roads_status.kml", "Open in Google Earth", "btn-cyan"],
+    ["roads_status.gpkg", "Open in QGIS", ""],
+    ["roads_status.geojson", "Roads file", ""],
+    ["blocked_and_uncertain_stretches.csv", "Blocked roads list (Excel)", ""],
+    ["change_polygons.geojson", "Changed areas", ""],
   ];
   $("exportLinks").innerHTML = exports
     .map(([fn, lbl, cls]) => `<a class="btn btn-sm ${cls}" href="/api/missions/${esc(missionId)}/download/${esc(fn)}">${esc(lbl)}</a>`)
@@ -190,8 +198,8 @@ function renderFacilities(iso) {
     });
     m.bindPopup(
       `<strong>${esc(f.name)}</strong><br/>Category: ${esc(f.category)}<br/>` +
-      `Est. Population: ${esc(f.population_est)}<br/>` +
-      `Status: <b style="color:${color}">${f.is_staging ? "STAGING BASE" : f.reachable ? "REACHABLE" : "CUT OFF (ISOLATED)"}</b>`
+      `About ${esc(f.population_est)} people<br/>` +
+      `<b style="color:${color}">${f.is_staging ? "START POINT" : f.reachable ? "CAN BE REACHED" : "CUT OFF"}</b>`
     );
     grp.addLayer(m);
   });
@@ -204,7 +212,7 @@ async function computeDetour() {
   const fromId = $("fromFac").value;
   const toId = $("toFac").value;
   if (!fromId || !toId || fromId === toId) {
-    toast("Pick two different facilities to compute a detour.");
+    toast("Pick two different places.");
     return;
   }
   try {
@@ -230,19 +238,17 @@ async function computeDetour() {
     const box = $("detourResult");
     box.style.display = "block";
     if (res.verdict === "ISOLATED_NO_SAFE_ROUTE") {
-      box.innerHTML = `<strong style="color:#f87171">ISOLATED — NO PASSABLE DETOUR</strong><br/>` +
-        `Pre-disaster shortest route: ${esc(res.baseline_distance_m ?? "n/a")} m.<br/>` +
-        `Blocked roads cutting access: <b>${esc(res.blocked_roads_avoided.join(", ") || "corridor cut")}</b>.<br/>` +
-        `<span class="muted">Dispatch PWD excavator via Tab 2 to reconnect this site, or plan helicopter / foot evac.</span>`;
+      box.innerHTML = `<strong style="color:#f87171">NO SAFE ROAD ROUTE.</strong><br/>` +
+        `Blocked: <b>road ${esc(res.blocked_roads_avoided.join(", ") || "on the way")}</b>.<br/>` +
+        `<span class="muted">Send a road crew (see the “Road crews” tab), or plan helicopter or foot rescue.</span>`;
     } else if (res.verdict === "SAFE_DETOUR_FOUND") {
-      box.innerHTML = `<strong style="color:#22d3ee">SAFE DETOUR FOUND (Cyan Line)</strong><br/>` +
-        `Safe route: <b>${esc(res.safe_distance_m)} m</b> (baseline ${esc(res.baseline_distance_m)} m · +${esc(res.detour_overhead_m)} m detour)<br/>` +
-        `Avoided blocked roads: ${esc(res.blocked_roads_avoided.join(", "))}`;
+      box.innerHTML = `<strong style="color:#22d3ee">SAFE ROUTE FOUND (blue line)</strong><br/>` +
+        `<b>${esc(Math.round(res.safe_distance_m))} m</b> long. Goes around blocked road ${esc(res.blocked_roads_avoided.join(", "))}.`;
     } else {
-      box.innerHTML = `<strong style="color:#34d399">DIRECT ROUTE CLEAR</strong><br/>Shortest passable route: <b>${esc(res.safe_distance_m)} m</b>.`;
+      box.innerHTML = `<strong style="color:#34d399">ROAD IS OPEN</strong><br/>Shortest route: <b>${esc(Math.round(res.safe_distance_m))} m</b>.`;
     }
     $("detourCypher").textContent = res.cypher || "";
-    $("detourEngineChip").textContent = res.engine === "neo4j_live" ? "Neo4j Live" : "Offline Mirror";
+    $("detourEngineChip").textContent = res.engine === "neo4j_live" ? "Answered by the live cloud database." : "Answered by the built-in offline copy.";
   } catch (e) {
     toast(e.message);
   }
@@ -250,39 +256,43 @@ async function computeDetour() {
 
 /* ---------- Segment 2: PWD / BRO Clearance Queue ---------- */
 function renderPwdQueue(iso, pq) {
-  $("pwdIsoCount").textContent = `${iso.isolated_count} / ${iso.isolated_count + iso.reachable_count}`;
+  $("pwdIsoCount").textContent = `${iso.isolated_count}`;
   $("pwdIsoNames").textContent = iso.isolated_facilities.length
-    ? "Cut off: " + iso.isolated_facilities.map((f) => f.name).join(", ")
-    : "All mapped communities are currently reachable from staging base.";
-  $("pwdIsoPop").textContent = `${iso.isolated_population.toLocaleString()} people`;
-  $("pwdEngineNote").textContent = pq.engine === "neo4j_live" ? "Live Neo4j Cypher Simulation" : "Offline Graph Mirror (Syncs to Neo4j when online)";
+    ? iso.isolated_facilities.map((f) => f.name).join(", ")
+    : "Nobody is cut off.";
+  $("pwdIsoPop").textContent = `${iso.isolated_population.toLocaleString()}`;
+  $("pwdEngineNote").textContent = "Mark a road as cleared and the map and numbers update at once. Sign in as Road Engineer first.";
+  const nxt = pq.queue.find((q) => q.currently_blocked);
+  $("pwdSummary").innerHTML = nxt
+    ? `<b>Do this first:</b> clear <b>road ${esc(nxt.road_name)}</b> (${esc(nxt.length_m)} m, about ${esc(nxt.est_debris_vol_m3)} m³ of rubble). It reconnects about <b>${nxt.population_reconnected.toLocaleString()} people</b>.`
+    : `<b>No blocked roads left to clear.</b>`;
   $("pwdCypher").textContent = pq.cypher || "";
   $("btnExportLedger").href = `/api/missions/${encodeURIComponent(state.missionId)}/work-orders/export.csv`;
 
   const tbody = $("pwdTableBody");
   if (!pq.queue.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="muted">No blocked road stretches detected in this mission.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="muted">No blocked roads found.</td></tr>`;
     return;
   }
   tbody.innerHTML = pq.queue.map((item) => {
     const st = item.work_order_status || "OPEN";
     const recon = item.facilities_reconnected?.length
-      ? `<strong>+${esc(item.population_reconnected)} pop</strong><br/><span class="muted">${esc(item.facilities_reconnected.join(", "))}</span>`
-      : `<span class="muted">Redundant / secondary cut</span>`;
+      ? `<strong>${esc(item.population_reconnected.toLocaleString())} people</strong><br/><span class="muted">${esc(item.facilities_reconnected.join(", "))}</span>`
+      : `<span class="muted">Helps other roads open</span>`;
     const isCleared = st === "CLEARED";
     return `<tr>
-      <td><strong>#${esc(item.priority_rank)}</strong></td>
-      <td><strong>${esc(item.road_name)}</strong><br/><span class="muted">${esc(item.stretch_key)}</span></td>
+      <td><strong>${esc(item.priority_rank)}</strong></td>
+      <td><strong>Road ${esc(item.road_name)}</strong></td>
       <td>${esc(item.length_m)} m</td>
-      <td>~${esc(item.est_debris_vol_m3)} m³</td>
+      <td>about ${esc(item.est_debris_vol_m3)} m³</td>
       <td>${recon}</td>
-      <td><span class="status-chip st-${esc(st)}">${esc(st)}</span></td>
+      <td><span class="status-chip st-${esc(st)}">${esc(({OPEN:"WAITING",DISPATCHED:"CREW SENT",CLEARED:"OPEN NOW"})[st] || st)}</span></td>
       <td>${esc(item.assigned_team || "Unassigned")}</td>
       <td>
         ${!isCleared
-          ? `<button class="btn btn-sm" data-wo="${esc(item.work_order_id)}" data-act="DISPATCHED">Dispatch JCB</button>
-             <button class="btn btn-sm btn-green" data-wo="${esc(item.work_order_id)}" data-act="CLEARED">Mark Cleared</button>`
-          : `<button class="btn btn-sm" data-wo="${esc(item.work_order_id)}" data-act="OPEN">Re-Open Cut</button>`}
+          ? `<button class="btn btn-sm" data-wo="${esc(item.work_order_id)}" data-act="DISPATCHED">Send crew</button>
+             <button class="btn btn-sm btn-green" data-wo="${esc(item.work_order_id)}" data-act="CLEARED">Road is open</button>`
+          : `<button class="btn btn-sm" data-wo="${esc(item.work_order_id)}" data-act="OPEN">Blocked again</button>`}
       </td>
     </tr>`;
   }).join("");
@@ -294,7 +304,7 @@ function renderPwdQueue(iso, pq) {
 
 async function handleWorkOrderAction(woId, newStatus) {
   if (!state.user || !["engineer", "admin"].includes(state.user.role)) {
-    toast("Sign in as PWD / BRO Clearance Engineer to update work orders.");
+    toast("Please sign in as Road Engineer first.");
     $("authModal").classList.add("open");
     return;
   }
@@ -305,7 +315,7 @@ async function handleWorkOrderAction(woId, newStatus) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus, assigned_team: team, notes: `Updated via PWD Clearance Queue -> ${newStatus}` }),
     });
-    toast(`Updated to ${newStatus}! Isolated population now: ${res.isolation_after.isolated_population}`);
+    toast(`Saved. People still cut off: ${res.isolation_after.isolated_population.toLocaleString()}`);
     await loadMission(state.missionId);
     loadAuditLogs();
   } catch (e) {
@@ -314,36 +324,38 @@ async function handleWorkOrderAction(woId, newStatus) {
 }
 
 /* ---------- Audit / Validation View ---------- */
+const TIME_LABELS = {"1_load_and_resample":"Load photos","2_register_to_base":"Line up the photos","3_change_detection":"Find what changed","4_road_scoring":"Check each road","5_export_geodata":"Save map files","6_brief_figure":"Draw the map","7_pdf":"Make the report","total":"TOTAL"};
 function renderAuditView(m) {
   const rep = m.summary;
   const g = rep.georeferencing || {};
   const ch = rep.change || {};
   $("honestyBox").innerHTML = `
-    <p><strong>Stated Positional Accuracy:</strong> ${esc(g.statement)}</p>
-    <p style="margin-top:8px"><strong>Registration Method:</strong> ${esc(g.method)} · Inliers: ${esc(g.n_inliers)} · RMS: ${esc(g.registration_rms_m ?? "n/a")} m · GPS Correction Applied: ${esc(g.gps_only_correction_m)} m</p>
-    <p style="margin-top:8px"><strong>Change Detection Limits:</strong> ${esc(ch.caveat)} Height cue used: <b>${ch.height_used ? "Yes (DSM−DEM)" : "No (optical-only)"}</b>.</p>
-    <p style="margin-top:8px" class="muted"><strong>Provenance:</strong> ${esc(rep.provenance)}</p>
+    <p><b>Position:</b> places on this map can be off by up to about <b>${esc(Math.round(g.horizontal_accuracy_95_m))} m</b>. Nobody has checked this on the ground.</p>
+    <p><b>Small debris:</b> the older photo is not very sharp, so small rubble can be missed.</p>
+    <p><b>Height check:</b> ${ch.height_used ? "Used (more reliable for rubble on roads)." : "Not used. Fly a drone to get height data; it makes blocked-road calls much more reliable."}</p>
+    <details class="tech"><summary>For engineers</summary>
+      <p class="muted">Method: ${esc(g.method)}, ${esc(g.n_inliers)} matching points, shift applied ${esc(g.gps_only_correction_m)} m. ${esc(rep.provenance)}</p></details>
   `;
 
   if (rep.copernicus_validation?.available) {
     const cv = rep.copernicus_validation;
     $("validationBox").innerHTML = `
-      <p><strong style="color:#c084fc">Real Ground-Truth Comparison: ${esc(cv.reference)}</strong></p>
-      <p style="margin-top:6px">Copernicus EMS graded segments in AOI: <b>${esc(cv.copernicus_segments_in_aoi)}</b> (${esc(cv.copernicus_damaged_segments)} damaged/destroyed, ${esc(cv.copernicus_undamaged_segments)} undamaged).</p>
-      <p style="margin-top:6px">MAPPA Recall vs. Copernicus Damaged Roads: <b>${Math.round(cv.recall_vs_copernicus_damaged * 100)}%</b> (${esc(cv.matched_damaged_road_m)} m matched of ${esc(cv.total_gt_damaged_in_footprint_m)} m)</p>
-      <p style="margin-top:4px">MAPPA Precision (optical-only): <b>${Math.round(cv.precision_vs_copernicus_damaged * 100)}%</b> · Clear Agreement on Undamaged: <b>${cv.clear_agreement_on_undamaged != null ? Math.round(cv.clear_agreement_on_undamaged * 100) + "%" : "n/a"}</b></p>
-      <p style="margin-top:8px" class="muted">${esc(cv.note)}</p>
+      <p><b>Yes, against the official Copernicus emergency survey of this flood.</b></p>
+      <p>Of the road the experts marked damaged, we flagged about <b>${Math.round(cv.recall_vs_copernicus_damaged * 100)}%</b>.</p>
+      <p>Of the road we flagged, about <b>${Math.round(cv.precision_vs_copernicus_damaged * 100)}%</b> was confirmed damaged. So expect false alarms.</p>
+      <p>Roads the experts found fine that we also called open: <b>${cv.clear_agreement_on_undamaged != null ? Math.round(cv.clear_agreement_on_undamaged * 100) + "%" : "n/a"}</b>.</p>
+      <p class="muted">This is photos only. A drone height scan would improve these numbers a lot.</p>
     `;
   } else if (rep.validation) {
     const v = rep.validation;
     $("validationBox").innerHTML = `
-      <p><strong style="color:#fbbf24">Synthetic Ground-Truth Validation (Known Slide &amp; GPS Shift)</strong></p>
-      <p style="margin-top:6px">Injected GPS Error Before → After: <b>${esc(v.error_before_mean_m)} m → ${esc(v.error_after_mean_m)} m</b> (${esc(v.n_points)} check points)</p>
-      <p style="margin-top:6px">Blocked-Road Precision / Recall (with DSM−DEM): <b>${esc(v.roads_vs_truth?.precision)} / ${esc(v.roads_vs_truth?.recall)}</b></p>
-      <p style="margin-top:6px" class="muted">Key ablation finding: Colour-only recall = 0.00 because landslide debris matches dirt-road colour; adding DSM−DEM raised recall to 1.00.</p>
+      <p><b>This is a practice map where we know the right answer.</b></p>
+      <p>Map position error: <b>${esc(v.error_before_mean_m)} m</b> before fixing, <b>${esc(v.error_after_mean_m)} m</b> after.</p>
+      <p>Blocked roads found correctly: <b>${esc(v.roads_vs_truth?.recall)}</b> (1.0 = all). False alarms: <b>${esc(1 - (v.roads_vs_truth?.precision ?? 1))}</b>.</p>
+      <p class="muted">Lesson: rubble looks like a dirt road in a photo. Height data is what catches it.</p>
     `;
   } else {
-    $("validationBox").innerHTML = `<p class="muted">Custom field run — no independent ground-truth layer attached.</p>`;
+    $("validationBox").innerHTML = `<p class="muted">Your own map. Nothing to compare it against yet.</p>`;
   }
 
   const tm = rep.processing_time_s || {};
@@ -353,10 +365,10 @@ function renderAuditView(m) {
     .map(([k, v]) => {
       const pct = Math.min(100, Math.round((v / total) * 100));
       return `<div style="margin-bottom:7px">
-        <div style="display:flex;justify-content:space-between;font-size:12px"><span>${esc(k)}</span><strong>${esc(v)} s</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span>${esc(TIME_LABELS[k] || k)}</span><strong>${esc(v)} s</strong></div>
         <div style="background:#1e293b;height:7px;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${k === "total" ? "#f97316" : "#06b6d4"}"></div></div>
       </div>`;
-    }).join("") + `<p class="muted" style="margin-top:8px">${esc(rep.processing_time_statement || "")}</p>`;
+    }).join("") + `<p class="muted" style="margin-top:8px">Total ${esc(Math.round(tm.total || 0))} seconds for ${esc(rep.area_km2)} km². Normal laptop, no internet, no graphics card.</p>`;
 }
 
 async function loadAuditLogs() {
@@ -381,10 +393,10 @@ async function refreshSession() {
   state.user = res.authenticated ? res.user : null;
   const btn = $("authBtn");
   if (state.user) {
-    btn.textContent = `${state.user.name} (${state.user.role}) · Sign Out`;
+    btn.textContent = `${state.user.name} · Sign out`;
     btn.className = "btn btn-sm";
   } else {
-    btn.textContent = "Sign In (2 Roles)";
+    btn.textContent = "Sign in";
     btn.className = "btn btn-primary";
   }
   loadAuditLogs();
@@ -397,15 +409,14 @@ async function refreshNeo4j() {
   const lbl = $("neo4jLabel");
   if (st.connected) {
     dot.className = "dot dot-green";
-    lbl.textContent = `Neo4j Live (${st.graph_stats?.nodes || 0} nodes)`;
+    lbl.textContent = "Smart routing: ON (cloud)";
   } else {
     dot.className = "dot dot-amber";
-    lbl.textContent = `Neo4j Mirror (${st.graph_stats?.nodes || 0} nodes)`;
+    lbl.textContent = "Smart routing: ON (offline)";
   }
   $("neo4jStatusDetail").innerHTML =
-    `<strong>Mode:</strong> ${st.connected ? '<span style="color:#34d399">LIVE NEO4J BOLT CONNECTED</span>' : '<span style="color:#fbbf24">OFFLINE GRAPH MIRROR (Field Mode)</span>'}<br/>` +
-    `Nodes: <b>${esc(st.graph_stats?.nodes)}</b> · Road Segments: <b>${esc(st.graph_stats?.road_edges)}</b><br/>` +
-    `<span class="muted">Plug in a Neo4j AuraDB URI below to sync all missions live over Bolt.</span>`;
+    `${st.connected ? '<b style="color:#34d399">Connected to the cloud database.</b>' : '<b style="color:#fbbf24">Working offline with a built-in copy.</b>'}<br/>` +
+    `Safe routes and “what to clear first” work either way. No internet needed in the field.`;
 }
 
 async function loginWith(email, password) {
@@ -418,7 +429,7 @@ async function loginWith(email, password) {
     });
     $("authModal").classList.remove("open");
     await refreshSession();
-    toast(`Signed in as ${res.user.full_name} (${res.user.role})`);
+    toast(`Signed in as ${res.user.full_name}`);
   } catch (e) {
     $("authErr").textContent = e.message;
   }
@@ -439,9 +450,8 @@ async function calcFlightPlan() {
     });
     const p = res.plan;
     $("planResult").innerHTML = `
-      <strong>Survey Grid Summary (${width_m} × ${height_m} m at ${alt_m} m AGL):</strong><br/>
-      GSD: <b>${esc(p.gsd_cm_px)} cm/px</b> · Photos: <b>${esc(p.n_images)}</b> · Lines: <b>${esc(p.n_lines)}</b><br/>
-      Line Spacing: ${esc(p.line_spacing_m)} m · Max Speed: ${esc(p.max_speed_ms)} m/s · Est. Flight Time: <b>~${esc(p.flight_time_min)} min</b>
+      <b>Fly ${esc(p.n_lines)} straight lines</b> at ${esc(alt_m)} m height, camera pointing straight down.<br/>
+      Fly no faster than <b>${esc(p.max_speed_ms)} m/s</b>. Expect about <b>${esc(p.n_images)} photos</b> and <b>~${esc(Math.round(p.flight_time_min))} minutes</b> in the air.
     `;
     $("btnDownloadKml").href = `/api/tools/flight-plan.kml?lat=${lat}&lon=${lon}&width_m=${width_m}&height_m=${height_m}&alt_m=${alt_m}`;
   } catch (e) {
@@ -510,7 +520,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
     $("neo4jErr").textContent = "";
     if (!state.user) {
-      $("neo4jErr").textContent = "Please sign in first (Commander or Engineer) to configure Neo4j.";
+      $("neo4jErr").textContent = "Please sign in first.";
       return;
     }
     try {
@@ -527,7 +537,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       await refreshNeo4j();
       await loadMission(state.missionId);
       $("neo4jModal").classList.remove("open");
-      toast("Connected to live Neo4j and synced all missions!");
+      toast("Connected.");
     } catch (err) {
       $("neo4jErr").textContent = err.message;
     }
@@ -537,19 +547,19 @@ window.addEventListener("DOMContentLoaded", async () => {
   $("uploadForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!state.user) {
-      toast("Please sign in first to run a new mapping mission.");
+      toast("Please sign in first.");
       $("authModal").classList.add("open");
       return;
     }
     const statusEl = $("uploadStatus");
-    statusEl.textContent = "Running offline registration, change detection, road scoring & Neo4j ingest...";
+    statusEl.textContent = "Working… this takes a few minutes. Keep this page open.";
     try {
       const fd = new FormData(e.target);
       const res = await api("/api/missions/run", { method: "POST", body: fd });
-      statusEl.textContent = `Done! Processed ${res.report.area_km2} km² in ${res.report.processing_time_s.total} s.`;
+      statusEl.textContent = `Done. ${res.report.area_km2} km² mapped in ${Math.round(res.report.processing_time_s.total)} seconds.`;
       await loadMissionsList(res.mission_id);
       document.querySelector('.tab[data-tab="mapView"]').click();
-      toast(`Mission '${res.mission_id}' ready on map & Neo4j!`);
+      toast("Your map is ready.");
     } catch (err) {
       statusEl.textContent = "Error: " + err.message;
     }

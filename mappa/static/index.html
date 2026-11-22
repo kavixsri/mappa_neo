@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MAPPA-Neo — Offline Disaster Mapping &amp; Neo4j Road Connectivity</title>
+  <title>MAPPA — Disaster Road Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
@@ -12,219 +12,210 @@
     <div class="brand">
       <div class="brand-mark">M</div>
       <div>
-        <h1>MAPPA-Neo</h1>
-        <small>Offline Drone-to-Map · GCP-Free Georef · Neo4j Road Connectivity Graph</small>
+        <h1>MAPPA</h1>
+        <small>Which roads are blocked? Who is cut off? What do we do first?</small>
       </div>
     </div>
     <div class="top-controls">
-      <select id="missionSelect" aria-label="Select mapping mission"></select>
-      <button id="neo4jPill" class="pill" title="Inspect or connect live Neo4j AuraDB / Bolt">
+      <select id="missionSelect" aria-label="Choose disaster area"></select>
+      <button id="neo4jPill" class="pill" title="Smart routing status">
         <span class="dot dot-amber" id="neo4jDot"></span>
-        <span id="neo4jLabel">Neo4j Graph</span>
+        <span id="neo4jLabel">Smart routing</span>
       </button>
-      <button id="authBtn" class="btn btn-primary">Sign In (2 Roles)</button>
+      <button id="authBtn" class="btn btn-primary">Sign in</button>
     </div>
   </header>
 
   <nav class="tabs" role="tablist">
-    <button class="tab active" data-tab="mapView">1. Field Map &amp; Neo4j Detour <span class="tab-badge">NDRF / SDRF</span></button>
-    <button class="tab" data-tab="pwdView">2. PWD / BRO Clearance Queue <span class="tab-badge">Engineers</span></button>
-    <button class="tab" data-tab="opsView">3. Run Pipeline &amp; Pilot Kit <span class="tab-badge">Drone Ops</span></button>
-    <button class="tab" data-tab="auditView">4. Accuracy, Validation &amp; Security</button>
+    <button class="tab active" data-tab="mapView">🗺️ Map &amp; safe route</button>
+    <button class="tab" data-tab="pwdView">🚜 Road crews: what to clear first</button>
+    <button class="tab" data-tab="opsView">🚁 Make a new map / Plan a flight</button>
+    <button class="tab" data-tab="auditView">✔ How much to trust this map</button>
   </nav>
 
-  <!-- VIEW 1: PRIMARY SEGMENT — FIELD INCIDENT COMMANDER -->
+  <!-- VIEW 1 -->
   <main id="mapView" class="view active">
-    <div id="missionBanner" class="banner banner-real">Loading mission...</div>
+    <div id="missionBanner" class="banner banner-real">Loading…</div>
+
+    <section class="summary" id="summaryBox" aria-live="polite">Loading the situation…</section>
+
     <div class="map-layout">
       <section class="card map-wrap">
-        <div class="map-toolbar">
-          <div class="layer-checks">
-            <label><input type="checkbox" id="chkPost" checked /> Post-Event</label>
-            <label><input type="checkbox" id="chkPre" /> Pre-Event Base</label>
-            <label><input type="checkbox" id="chkChange" checked /> Change Mask</label>
-            <label><input type="checkbox" id="chkRoads" checked /> MAPPA Roads</label>
-            <label><input type="checkbox" id="chkCopernicus" /> Copernicus EMS Truth</label>
-            <label><input type="checkbox" id="chkFacilities" checked /> Villages / Facilities</label>
-          </div>
-          <div class="swipe-box">
-            <span class="muted">Post Opacity</span>
-            <input type="range" id="postOpacity" min="0" max="1" step="0.05" value="0.92" />
-          </div>
-        </div>
         <div id="map"></div>
-        <div class="muted" id="mapLegend">
-          <strong style="color:#ef4444">■ BLOCKED</strong> ·
-          <strong style="color:#f59e0b">■ UNCERTAIN</strong> ·
-          <strong style="color:#10b981">■ CLEAR</strong> ·
-          <strong style="color:#06b6d4">━━ Neo4j Safe Detour</strong> ·
-          <strong style="color:#a855f7">┄┄ Copernicus EMS Destroyed/Damaged</strong>
+        <div class="legend">
+          <span><i style="background:#ef4444"></i> BLOCKED road</span>
+          <span><i style="background:#f59e0b"></i> MAYBE blocked</span>
+          <span><i style="background:#10b981"></i> OPEN road</span>
+          <span><i style="background:#06b6d4"></i> Safe route</span>
         </div>
+        <details class="layers">
+          <summary>Show / hide map layers</summary>
+          <div class="layer-checks">
+            <label><input type="checkbox" id="chkPost" checked /> Photo after disaster</label>
+            <label><input type="checkbox" id="chkPre" /> Photo before disaster</label>
+            <label><input type="checkbox" id="chkChange" checked /> What changed (red tint)</label>
+            <label><input type="checkbox" id="chkRoads" checked /> Roads</label>
+            <label><input type="checkbox" id="chkCopernicus" /> Official damage survey (purple)</label>
+            <label><input type="checkbox" id="chkFacilities" checked /> Villages &amp; clinics</label>
+          </div>
+          <label class="slider">Fade the after-photo
+            <input type="range" id="postOpacity" min="0" max="1" step="0.05" value="0.92" />
+          </label>
+        </details>
       </section>
 
       <aside class="stack">
         <section class="card">
-          <h2>Mission Situation Summary</h2>
-          <div class="kpi-grid">
-            <div class="kpi kpi-cyan"><div class="val" id="kpiArea">--</div><div class="lbl">Area Mapped (km²)</div></div>
-            <div class="kpi kpi-red"><div class="val" id="kpiBlocked">--</div><div class="lbl">Roads BLOCKED (m)</div></div>
-            <div class="kpi kpi-amber"><div class="val" id="kpiIsolated">--</div><div class="lbl">Cut-Off Pop (Neo4j)</div></div>
-            <div class="kpi kpi-green"><div class="val" id="kpiAcc">--</div><div class="lbl">Stated Accuracy (95%)</div></div>
-          </div>
-          <div class="muted" id="accuracyLine"></div>
-        </section>
-
-        <section class="card">
-          <h2>Neo4j Safe Detour Router <span class="status-chip st-CLEAR" id="detourEngineChip">Graph Ready</span></h2>
+          <h2>1 · Find a safe route</h2>
           <div class="form-row">
-            <label for="fromFac">Origin (Staging Base / Point)</label>
+            <label for="fromFac">Start from</label>
             <select id="fromFac"></select>
           </div>
           <div class="form-row">
-            <label for="toFac">Destination (Village / Clinic / Highway)</label>
+            <label for="toFac">Go to</label>
             <select id="toFac"></select>
           </div>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-bottom:9px;cursor:pointer">
-            <input type="checkbox" id="avoidUncertain" /> Also avoid UNCERTAIN road segments
-          </label>
-          <button id="btnComputeDetour" class="btn btn-cyan" style="width:100%;justify-content:center">
-            Compute Safe Detour via Neo4j Cypher
-          </button>
+          <label class="check"><input type="checkbox" id="avoidUncertain" /> Also avoid “maybe blocked” roads</label>
+          <button id="btnComputeDetour" class="btn btn-big btn-cyan">Find safe route</button>
           <div id="detourResult" class="detour-result" style="display:none"></div>
-          <details style="margin-top:8px">
-            <summary class="muted" style="cursor:pointer">Inspect Cypher Query Executed</summary>
+          <details class="tech">
+            <summary>For engineers: the database query used</summary>
+            <span id="detourEngineChip" class="muted"></span>
             <pre id="detourCypher" class="cypher-box"></pre>
           </details>
         </section>
 
         <section class="card">
-          <h2>Agency-Ready GIS &amp; Brief Exports</h2>
-          <p class="muted" style="margin-bottom:9px">Standard formats responders open directly in QGIS, Google Earth, or field tablets.</p>
+          <h2>2 · Take the map with you</h2>
+          <p class="muted">Opens in QGIS, Google Earth, or any phone map app.</p>
           <div class="export-grid" id="exportLinks"></div>
+        </section>
+
+        <section class="card tiny-kpis">
+          <div class="kpi"><div class="val" id="kpiArea">--</div><div class="lbl">Area covered (km²)</div></div>
+          <div class="kpi"><div class="val" id="kpiBlocked">--</div><div class="lbl">Blocked road</div></div>
+          <div class="kpi"><div class="val" id="kpiIsolated">--</div><div class="lbl">People cut off</div></div>
+          <div class="kpi"><div class="val" id="kpiAcc">--</div><div class="lbl">Map position accuracy</div></div>
+          <div class="muted" id="accuracyLine" style="grid-column:1/-1"></div>
         </section>
       </aside>
     </div>
   </main>
 
-  <!-- VIEW 2: SEGMENT 2 — PWD / BRO HIGHWAY CLEARANCE ENGINEERS -->
+  <!-- VIEW 2 -->
   <section id="pwdView" class="view">
+    <section class="summary" id="pwdSummary">Loading…</section>
     <div class="grid-3" style="margin-bottom:14px">
       <div class="card">
-        <h3>Neo4j Cut-Off Communities</h3>
-        <div style="font-size:26px;font-weight:800;color:#f87171" id="pwdIsoCount">--</div>
-        <div class="muted" id="pwdIsoNames">Calculating graph reachability...</div>
+        <h3>Places cut off</h3>
+        <div class="bignum red" id="pwdIsoCount">--</div>
+        <div class="muted" id="pwdIsoNames"></div>
       </div>
       <div class="card">
-        <h3>Est. Isolated Population</h3>
-        <div style="font-size:26px;font-weight:800;color:#fbbf24" id="pwdIsoPop">--</div>
-        <div class="muted">People cut off from southern highway staging base</div>
+        <h3>People cut off</h3>
+        <div class="bignum amber" id="pwdIsoPop">--</div>
+        <div class="muted">Estimated, from the nearest town or road end</div>
       </div>
       <div class="card">
-        <h3>PWD / NDMA Actions</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-          <a id="btnExportLedger" class="btn btn-green btn-sm" href="#">Export Work-Order CSV</a>
-          <button id="btnQuickEngineer" class="btn btn-sm">Sign in as PWD Engineer</button>
+        <h3>Actions</h3>
+        <div class="stack">
+          <button id="btnQuickEngineer" class="btn btn-big btn-primary">Sign in as Road Engineer</button>
+          <a id="btnExportLedger" class="btn btn-green" href="#">Download work list (CSV)</a>
         </div>
-        <div class="muted" style="margin-top:6px">Marking a stretch CLEARED mutates Neo4j live and recalculates village reachability.</div>
+        <div class="muted" style="margin-top:8px" id="pwdEngineNote"></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>
-        Neo4j Clearance Priority Queue (Excavator Dispatch Order)
-        <span class="muted" id="pwdEngineNote"></span>
-      </h2>
+      <h2>Clear these roads in this order</h2>
+      <p class="muted">Top of the list = reconnects the most people for the least digging.</p>
       <div style="overflow-x:auto">
         <table>
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Road Stretch</th>
-              <th>Length</th>
-              <th>Est. Debris</th>
-              <th>Reconnected Pop / Sites</th>
-              <th>Status</th>
-              <th>Assigned Team</th>
-              <th>Actions (Engineer Role)</th>
+              <th>Order</th><th>Road</th><th>Length</th><th>Rubble (est.)</th>
+              <th>People reconnected</th><th>Status</th><th>Team</th><th>Update</th>
             </tr>
           </thead>
           <tbody id="pwdTableBody"></tbody>
         </table>
       </div>
-      <details style="margin-top:12px">
-        <summary class="muted" style="cursor:pointer">Inspect Neo4j Clearance Simulation Cypher</summary>
+      <details class="tech">
+        <summary>For engineers: the database query used</summary>
         <pre id="pwdCypher" class="cypher-box"></pre>
       </details>
     </div>
   </section>
 
-  <!-- VIEW 3: RUN OFFLINE PIPELINE + DRONE PILOT KIT -->
+  <!-- VIEW 3 -->
   <section id="opsView" class="view">
     <div class="grid-2">
       <div class="card">
-        <h2>Run MAPPA Pipeline on Your Own Imagery</h2>
-        <p class="muted" style="margin-bottom:10px">
-          Upload a post-disaster GeoTIFF orthophoto (metric UTM CRS), a pre-disaster base GeoTIFF, and a roads GeoJSON.
-          MAPPA runs offline registration, change detection, road scoring, PDF generation, and Neo4j graph ingestion.
-        </p>
-        <form id="uploadForm">
-          <div class="form-row"><label>Mission Name</label><input name="name" required placeholder="e.g. Joshimath NH-7 Sector B" /></div>
-          <div class="form-row"><label>Location</label><input name="location" value="Field Survey Area" /></div>
-          <div class="grid-2">
-            <div class="form-row"><label>Grid Res (m/px)</label><input name="grid_res" type="number" step="0.5" value="1.5" /></div>
-            <div class="form-row"><label>Base Accuracy 95% (m)</label><input name="base_accuracy" type="number" step="1" value="10" /></div>
-          </div>
-          <div class="form-row"><label>Post-Event Ortho (.tif, metric UTM)</label><input type="file" name="ortho" accept=".tif,.tiff" required /></div>
-          <div class="form-row"><label>Pre-Event Base Imagery (.tif)</label><input type="file" name="base" accept=".tif,.tiff" required /></div>
-          <div class="form-row"><label>OSM Roads (.geojson / .gpkg)</label><input type="file" name="roads" accept=".geojson,.json,.gpkg" required /></div>
-          <button type="submit" class="btn btn-primary" id="btnRunUpload">Run Offline Pipeline &amp; Sync Neo4j</button>
-          <div id="uploadStatus" class="muted" style="margin-top:8px"></div>
-        </form>
+        <h2>🚁 Before you fly: get a flight plan</h2>
+        <p class="muted">Pick the area. Get a ready-made flight path and a one-page pilot card.</p>
+        <div class="grid-2">
+          <div class="form-row"><label>Latitude</label><input id="fpLat" type="number" step="0.0001" value="28.1622" /></div>
+          <div class="form-row"><label>Longitude</label><input id="fpLon" type="number" step="0.0001" value="85.3345" /></div>
+          <div class="form-row"><label>Area width (m)</label><input id="fpW" type="number" value="600" /></div>
+          <div class="form-row"><label>Area length (m)</label><input id="fpH" type="number" value="500" /></div>
+          <div class="form-row"><label>Flying height (m)</label><input id="fpAlt" type="number" value="90" /></div>
+        </div>
+        <div class="stack" style="margin-top:8px">
+          <button id="btnCalcPlan" class="btn btn-big btn-cyan">Show flight summary</button>
+          <a id="btnDownloadKml" class="btn btn-big btn-primary" href="/api/tools/flight-plan.kml?lat=28.1622&lon=85.3345&width_m=600&height_m=500&alt_m=90">Download flight path (load into drone app)</a>
+          <a class="btn btn-big btn-green" href="/api/tools/capture-card.pdf">Print the 5-step pilot card</a>
+        </div>
+        <div id="planResult" class="detour-result" style="margin-top:12px"></div>
       </div>
 
       <div class="card">
-        <h2>30-Second Pilot Kit &amp; KML Mission Planner</h2>
-        <p class="muted" style="margin-bottom:10px">
-          Pre-generate a stress-proof lawnmower survey grid KML and download the laminated 5-rule capture card for drone pilots.
-        </p>
-        <div class="grid-2">
-          <div class="form-row"><label>Center Latitude</label><input id="fpLat" type="number" step="0.0001" value="28.1622" /></div>
-          <div class="form-row"><label>Center Longitude</label><input id="fpLon" type="number" step="0.0001" value="85.3345" /></div>
-          <div class="form-row"><label>Width (m)</label><input id="fpW" type="number" value="600" /></div>
-          <div class="form-row"><label>Height (m)</label><input id="fpH" type="number" value="500" /></div>
-          <div class="form-row"><label>Altitude AGL (m)</label><input id="fpAlt" type="number" value="90" /></div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-          <button id="btnCalcPlan" class="btn btn-cyan">Calculate Grid</button>
-          <a id="btnDownloadKml" class="btn btn-primary" href="/api/tools/flight-plan.kml?lat=28.1622&lon=85.3345&width_m=600&height_m=500&alt_m=90">Download Mission KML</a>
-          <a class="btn btn-green" href="/api/tools/capture-card.pdf">30s Capture Card PDF</a>
-        </div>
-        <div id="planResult" class="detour-result" style="margin-top:12px"></div>
+        <h2>🗺️ After you fly: make the map</h2>
+        <ol class="steps">
+          <li>Add the <b>stitched photo of the area now</b> (.tif)</li>
+          <li>Add an <b>older photo of the same area</b> (.tif)</li>
+          <li>Add the <b>road file</b> (.geojson)</li>
+          <li>Press the big button. Takes a few minutes on a laptop. No internet needed.</li>
+        </ol>
+        <form id="uploadForm">
+          <div class="form-row"><label>Name this map</label><input name="name" required placeholder="e.g. Highway cut near Dhunche" /></div>
+          <div class="form-row"><label>Photo now (after disaster)</label><input type="file" name="ortho" accept=".tif,.tiff" required /></div>
+          <div class="form-row"><label>Older photo (before disaster)</label><input type="file" name="base" accept=".tif,.tiff" required /></div>
+          <div class="form-row"><label>Roads file</label><input type="file" name="roads" accept=".geojson,.json,.gpkg" required /></div>
+          <input type="hidden" name="location" value="Field survey area" />
+          <details class="tech">
+            <summary>Advanced settings (leave as is if unsure)</summary>
+            <div class="grid-2">
+              <div class="form-row"><label>Detail level (m per pixel)</label><input name="grid_res" type="number" step="0.5" value="1.5" /></div>
+              <div class="form-row"><label>Older photo accuracy (m)</label><input name="base_accuracy" type="number" step="1" value="10" /></div>
+            </div>
+          </details>
+          <button type="submit" class="btn btn-big btn-primary" id="btnRunUpload">Make the map</button>
+          <div id="uploadStatus" class="muted" style="margin-top:8px"></div>
+        </form>
       </div>
     </div>
   </section>
 
-  <!-- VIEW 4: ACCURACY, HONEST VALIDATION & SECURITY -->
+  <!-- VIEW 4 -->
   <section id="auditView" class="view">
     <div class="grid-2" style="margin-bottom:14px">
       <div class="card">
-        <h2>Honest Accuracy Budget &amp; Provenance</h2>
-        <div id="honestyBox" style="font-size:13px;line-height:1.55"></div>
+        <h2>How accurate is this map?</h2>
+        <div id="honestyBox" class="prose"></div>
       </div>
       <div class="card">
-        <h2>Ground-Truth Validation (Real Copernicus EMS &amp; Synthetic Ablation)</h2>
-        <div id="validationBox" style="font-size:13px;line-height:1.55"></div>
+        <h2>Did we check it against the real world?</h2>
+        <div id="validationBox" class="prose"></div>
       </div>
     </div>
     <div class="grid-2">
       <div class="card">
-        <h2>Processing Time Breakdown (Laptop CPU, Offline)</h2>
-        <div id="timingBox" style="font-size:13px"></div>
+        <h2>How fast was it?</h2>
+        <div id="timingBox"></div>
       </div>
       <div class="card">
-        <h2>Security &amp; Action Audit Trail (ArgosX Hardened)</h2>
-        <p class="muted" style="margin-bottom:8px">JWT + bcrypt RBAC · Strict CSP/HSTS/XFO headers · Rate limiting · Parameterized SQL &amp; Cypher · Path-traversal guard.</p>
-        <div id="auditLogBox" class="muted">Sign in to inspect the live audit trail.</div>
+        <h2>Who did what (activity log)</h2>
+        <div id="auditLogBox" class="muted">Sign in to see the activity log.</div>
       </div>
     </div>
   </section>
@@ -232,47 +223,47 @@
   <!-- AUTH MODAL -->
   <div id="authModal" class="modal-backdrop">
     <div class="modal">
-      <h2>Sign In to MAPPA-Neo</h2>
-      <div class="demo-creds">
-        <strong>Evaluator One-Click Demo Roles:</strong><br/>
-        <button class="btn btn-sm btn-cyan" id="fillCommander">NDRF Incident Commander</button>
-        <button class="btn btn-sm btn-primary" id="fillEngineer">PWD / BRO Clearance Engineer</button>
+      <h2>Who are you?</h2>
+      <div class="stack">
+        <button class="btn btn-big btn-cyan" id="fillCommander">I lead the rescue team</button>
+        <button class="btn btn-big btn-primary" id="fillEngineer">I run the road crews (PWD / BRO)</button>
       </div>
-      <form id="loginForm">
-        <div class="form-row"><label>Email</label><input id="loginEmail" type="email" required /></div>
-        <div class="form-row"><label>Password</label><input id="loginPass" type="password" required /></div>
-        <div style="display:flex;justify-content:space-between;gap:8px;margin-top:12px">
-          <button type="submit" class="btn btn-primary">Sign In</button>
-          <button type="button" class="btn" id="closeAuth">Cancel</button>
-        </div>
-        <div id="authErr" class="muted" style="color:#f87171;margin-top:8px"></div>
-      </form>
+      <details class="tech" style="margin-top:12px">
+        <summary>Use my own email &amp; password</summary>
+        <form id="loginForm">
+          <div class="form-row"><label>Email</label><input id="loginEmail" type="email" /></div>
+          <div class="form-row"><label>Password</label><input id="loginPass" type="password" /></div>
+          <button type="submit" class="btn btn-primary">Sign in</button>
+        </form>
+      </details>
+      <div id="authErr" class="muted" style="color:#f87171;margin-top:8px"></div>
+      <button type="button" class="btn" id="closeAuth" style="margin-top:10px">Cancel</button>
     </div>
   </div>
 
-  <!-- NEO4J MODAL -->
+  <!-- ROUTING MODAL -->
   <div id="neo4jModal" class="modal-backdrop">
     <div class="modal">
-      <h2>Neo4j Graph Connection</h2>
+      <h2>Smart routing</h2>
       <div id="neo4jStatusDetail" class="detour-result" style="margin-bottom:12px"></div>
-      <form id="neo4jForm">
-        <div class="form-row"><label>Neo4j AuraDB / Bolt URI</label><input id="n4jUri" placeholder="neo4j+s://xxxx.databases.neo4j.io" required /></div>
-        <div class="grid-2">
-          <div class="form-row"><label>Username</label><input id="n4jUser" value="neo4j" required /></div>
-          <div class="form-row"><label>Database</label><input id="n4jDb" value="neo4j" /></div>
-        </div>
-        <div class="form-row"><label>Password</label><input id="n4jPass" type="password" required /></div>
-        <div style="display:flex;justify-content:space-between;gap:8px;margin-top:10px">
-          <button type="submit" class="btn btn-cyan">Connect &amp; Sync Missions</button>
-          <button type="button" class="btn" id="closeNeo4j">Close</button>
-        </div>
-        <div id="neo4jErr" class="muted" style="color:#f87171;margin-top:8px"></div>
-      </form>
+      <details class="tech">
+        <summary>For engineers: connect the cloud database (Neo4j)</summary>
+        <form id="neo4jForm">
+          <div class="form-row"><label>Database address</label><input id="n4jUri" placeholder="neo4j+s://xxxx.databases.neo4j.io" /></div>
+          <div class="grid-2">
+            <div class="form-row"><label>Username</label><input id="n4jUser" value="neo4j" /></div>
+            <div class="form-row"><label>Database</label><input id="n4jDb" value="neo4j" /></div>
+          </div>
+          <div class="form-row"><label>Password</label><input id="n4jPass" type="password" /></div>
+          <button type="submit" class="btn btn-cyan">Connect</button>
+          <div id="neo4jErr" class="muted" style="color:#f87171;margin-top:8px"></div>
+        </form>
+      </details>
+      <button type="button" class="btn" id="closeNeo4j" style="margin-top:10px">Close</button>
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="/static/app.js"></script>
 </body>
