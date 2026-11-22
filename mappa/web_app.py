@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTex
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, pipeline, planner, qwen_vision
+from . import __version__, pipeline, planner, qwen_vision, sarvam_voice
 from .db import Database
 from .graph_neo4j import MappaGraphService
 from .security import (
@@ -205,6 +205,11 @@ class InspectPointRequest(BaseModel):
     mappa_status: str = Field(default="BLOCKED", max_length=32)
 
 
+class VoiceBriefRequest(BaseModel):
+    language_code: str = Field(default="hi-IN", max_length=12)
+    role: str = Field(default="commander", max_length=24)
+
+
 # --- Frontend Entry ---
 @app.get("/", response_class=HTMLResponse)
 def serve_index():
@@ -224,7 +229,19 @@ def health():
         "missions_count": len(db.list_missions()),
         "neo4j": graph_svc.status(),
         "qwen_vl": qwen_vision.qwen_status(),
+        "sarvam_ai": sarvam_voice.sarvam_status(),
     }
+
+
+@app.post("/api/missions/{mission_id}/voice-brief")
+def mission_voice_brief(mission_id: str, body: VoiceBriefRequest):
+    validate_safe_id(mission_id, "mission_id")
+    m = db.get_mission(mission_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Mission not found.")
+    iso = graph_svc.compute_isolation(mission_id)
+    pq = graph_svc.clearance_priority_queue(mission_id)
+    return sarvam_voice.generate_voice_brief(m, iso, pq, language_code=body.language_code, role=body.role)
 
 
 @app.get("/api/qwen/status")

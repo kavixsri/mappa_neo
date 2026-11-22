@@ -161,6 +161,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "style-src 'self' https://unpkg.com https://fonts.googleapis.com 'unsafe-inline'; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.basemaps.cartocdn.com; "
+            "media-src 'self' data: blob:; "
             "connect-src 'self'; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "

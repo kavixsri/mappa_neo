@@ -431,6 +431,36 @@ async function updateWorkOrder(woId, newStatus) {
   } catch (e) { toast(e.message); }
 }
 
+/* ---------- Sarvam AI Multilingual Field Voice Brief ---------- */
+async function playSarvamBrief(role, langSelectId, outBoxId) {
+  const lang = $(langSelectId).value || "hi-IN";
+  const box = $(outBoxId);
+  box.classList.remove("hidden", "ok", "detour", "blocked");
+  box.innerHTML = `<span style="color:var(--muted)">Translating &amp; generating Sarvam AI voice brief (${esc(lang)})…</span>`;
+  try {
+    const res = await api(`/api/missions/${state.missionId}/voice-brief`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ language_code: lang, role }),
+    });
+    const audioHtml = res.audio_data_uri
+      ? `<audio controls autoplay style="width:100%;margin-top:8px;height:36px" src="${res.audio_data_uri}"></audio>
+         <div style="margin-top:6px"><a class="btn btn-sm" download="${esc(state.missionId)}_${esc(role)}_${esc(lang)}.wav" href="${res.audio_data_uri}">Download WAV Radio Clip</a></div>`
+      : "";
+    const errHtml = res.error ? `<div style="margin-top:6px;font-size:12px;color:var(--signal-amber)">${esc(res.error)}</div>` : "";
+    box.classList.add(res.audio_data_uri ? "detour" : "ok");
+    box.innerHTML = `
+      <div style="font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:4px">SARVAM AI · ${esc(res.language_name)}</div>
+      <div style="font-size:13.5px;font-weight:600;color:var(--ink)">${esc(res.translated_text)}</div>
+      ${audioHtml}
+      ${errHtml}
+    `;
+  } catch (e) {
+    box.classList.add("blocked");
+    box.innerHTML = `<span class="err-text">${esc(e.message)}</span>`;
+  }
+}
+
 /* ---------- Qwen2.5-VL Before/After Visual Inspection ---------- */
 async function openVisualInspect(lat, lon, roadName, mappaStatus) {
   const modal = $("inspectModal");
@@ -515,6 +545,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (state.ndrfLayers.post) state.ndrfLayers.post.setOpacity(parseFloat(e.target.value));
   });
   $("btnComputeDetour").addEventListener("click", computeDetour);
+  $("btnNdrfVoice").addEventListener("click", () => playSarvamBrief("commander", "ndrfLang", "ndrfVoiceOut"));
+  $("btnPwdVoice").addEventListener("click", () => playSarvamBrief("engineer", "pwdLang", "pwdVoiceOut"));
   $("closeInspect").addEventListener("click", () => $("inspectModal").classList.add("hidden"));
   $("inspectModal").addEventListener("click", (e) => { if (e.target === $("inspectModal")) $("inspectModal").classList.add("hidden"); });
   $("btnNdrfInspectTop").addEventListener("click", () => {
